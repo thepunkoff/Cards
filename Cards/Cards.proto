@@ -1,0 +1,31 @@
+﻿syntax = "proto3";
+package cards.v1;
+
+option csharp_namespace = "Cards.Grpc.Generated";
+
+import "google/protobuf/empty.proto";
+
+service CardsService {
+  // Добавить карточку.
+  rpc AddCard(Card) returns (google.protobuf.Empty);
+
+  // Получить карточки.
+  // rpc GetCards(GetCardsRequest) returns (Cards);
+}
+
+message Card {
+  string EnglishWord = 1;
+  string RussianWord = 2;
+}
+
+/*
+
+message GetCardsRequest {
+  
+}
+
+message Cards {
+  repeated Card Cards = 1;
+}
+
+*/

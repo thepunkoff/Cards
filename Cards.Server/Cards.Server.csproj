@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <RootNamespace>Cards</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.38.0" />
+        <PackageReference Include="Grpc.Core" Version="2.38.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="../Cards/Cards.proto" GrpcServices="Server" OutputDir="Grpc/Generated" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Cards\Cards.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Grpc\Generated" />
+    </ItemGroup>
+
+</Project>
