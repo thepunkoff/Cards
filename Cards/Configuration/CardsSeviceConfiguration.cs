@@ -2,8 +2,14 @@
 {
     public class CardsSeviceConfiguration
     {
-        public string MongoConnectionString { get; set; }
+        public CardsSeviceConfiguration(string mongoConnectionString, string mongoDatabaseName)
+        {
+            MongoConnectionString = mongoConnectionString;
+            MongoDatabaseName = mongoDatabaseName;
+        }
         
-        public string MongoDatabaseName { get; set; }
+        public string MongoConnectionString { get; init; }
+        
+        public string MongoDatabaseName { get; init; }
     }
 }

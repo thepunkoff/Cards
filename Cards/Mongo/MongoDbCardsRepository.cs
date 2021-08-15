@@ -1,4 +1,8 @@
-﻿using Cards.Domain.Abstractions;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
+using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
 using Cards.Mongo.Models;
 using MongoDB.Driver;
@@ -11,18 +15,41 @@ namespace Cards.Mongo
         
         public MongoDbCardsRepository(string connectionString, string databaseName)
         {
-            var client = new MongoClient(connectionString);
-            var database = client.GetDatabase(databaseName);
-            database.CreateCollection(CardDocument.CardsCollectionName);
-
             _rawMongoCollection = new MongoClient(connectionString)
                 .GetDatabase(databaseName)
                 .GetCollection<CardDocument>(CardDocument.CardsCollectionName); 
         }
 
-        public void AddCard(Card card)
+        // TODO: CancellationToken
+        public async Task<(bool Exists, Card? Card)> GetCard(string word)
         {
-            _rawMongoCollection.InsertOne(new CardDocument(card.EnglishWord, card.RussianWord));
+            var filter = new FilterDefinitionBuilder<CardDocument>().Eq(x => x.EnglishWord, word);
+
+            var count = await _rawMongoCollection.CountDocumentsAsync(filter);
+
+            switch (count)
+            {
+                case > 1:
+                case < 0:
+                    throw new Exception($"There were {count} entries in database for word {word}!");
+                case 0:
+                    return (false, null);
+                default:
+                {
+                    var crs = await _rawMongoCollection.FindAsync(filter);
+                    await crs.MoveNextAsync();
+                    var card = crs.Current.ElementAt(0).ToDomain();
+                    return (true, card);
+                }
+            }
+        }
+        
+        // TODO: CancellationToken
+        // TODO: Check result
+        public async Task AddCard(Card card)
+        {
+            await _rawMongoCollection.InsertOneAsync(card.ToMongo());
+            Console.WriteLine($"New card added: {{ {card.EnglishWord} - {card.RussianTranslations[0]} }}");
         }
     }
 }

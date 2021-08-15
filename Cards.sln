@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cards.Cli", "Cards.Cli\Card
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cards", "Cards\Cards.csproj", "{F24B27A8-3E06-44D8-8CDC-893A5487BCE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cards.Telegram", "Cards.Telegram\Cards.Telegram.csproj", "{C749E91F-68CD-4775-A608-C529055BC7F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{F24B27A8-3E06-44D8-8CDC-893A5487BCE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F24B27A8-3E06-44D8-8CDC-893A5487BCE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F24B27A8-3E06-44D8-8CDC-893A5487BCE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C749E91F-68CD-4775-A608-C529055BC7F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C749E91F-68CD-4775-A608-C529055BC7F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C749E91F-68CD-4775-A608-C529055BC7F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C749E91F-68CD-4775-A608-C529055BC7F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -3,15 +3,22 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>Cli</RootNamespace>
-        <IsPackable>true</IsPackable>
-        <ToolCommandName>cards</ToolCommandName>
-        <PackAsTool>true</PackAsTool>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Telegram.Bot" Version="10.4.0" />
+    </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Cards\Cards.csproj" />
     </ItemGroup>
-    
+
+    <ItemGroup>
+      <None Update="Configuration\config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

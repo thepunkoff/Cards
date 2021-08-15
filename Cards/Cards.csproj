@@ -6,18 +6,29 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Protobuf Include="Cards.proto">
-        <GrpcServices>Client</GrpcServices>
-        <Access>Public</Access>
-        <ProtoCompile>True</ProtoCompile>
-        <CompileOutputs>True</CompileOutputs>
-        <OutputDir>obj\Debug\net6.0\</OutputDir>
-        <Generator>MSBuild:Compile</Generator>
-      </Protobuf>
+        <Protobuf Include="Cards.proto">
+            <GrpcServices>Both</GrpcServices>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>Grpc\Generated</OutputDir>
+            <Generator>MSBuild:Compile</Generator>
+        </Protobuf>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
+        <PackageReference Include="Google.Protobuf" Version="3.17.3" /> 
+        <PackageReference Include="Grpc.Net.Client" Version="2.38.0" /> 
+        <PackageReference Include="Grpc.Core" Version="2.38.1" />
+        <PackageReference Include="Grpc.Tools" Version="2.38.1">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="AngleSharp" Version="0.16.0" />
+        <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
+        <PackageReference Include="IBM.Watson.LanguageTranslator.v3" Version="5.2.0" />
     </ItemGroup>
 
 </Project>

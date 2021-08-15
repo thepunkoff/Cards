@@ -6,22 +6,19 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>Cards</RootNamespace>
     </PropertyGroup>
-
+    
     <ItemGroup>
-        <PackageReference Include="Grpc.AspNetCore" Version="2.38.0" />
-        <PackageReference Include="Grpc.Core" Version="2.38.1" />
+      <PackageReference Include="Grpc.Core" Version="2.38.1" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Protobuf Include="../Cards/Cards.proto" GrpcServices="Server" OutputDir="Grpc/Generated" />
-    </ItemGroup>
-
+    
     <ItemGroup>
       <ProjectReference Include="..\Cards\Cards.csproj" />
     </ItemGroup>
-
+    
     <ItemGroup>
-      <Folder Include="Grpc\Generated" />
+      <None Update="Configuration\config.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

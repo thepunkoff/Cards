@@ -6,23 +6,45 @@ namespace Cards.Mongo.Models
 {
     public class CardDocument
     {
-        public static string CardsCollectionName = "cards";
+        public const string CardsCollectionName = "cards";
 
-        public CardDocument(string englishWord, string russianWord)
+        public CardDocument(
+            string englishWord,
+            string[] russianTranslations,
+            string[] usageExamples,
+            string etymology,
+            string definition,
+            string youGlishLink)
         {
             Id = Guid.NewGuid();
             EnglishWord = englishWord;
-            RussianWord = russianWord;
+            RussianTranslations = russianTranslations;
+            UsageExamples = usageExamples;
+            Etymology = etymology;
+            Definition = definition;
+            YouGlishLink = youGlishLink;
         }
-        
+
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public Guid Id { get; set; }
+        public Guid Id;
         
         [BsonElement("englishWord")]
         public string EnglishWord { get; set; }
         
-        [BsonElement("russianWord")]
-        public string RussianWord { get; set; }
+        [BsonElement("russianTranslations")]
+        public string[] RussianTranslations { get; set; }
+        
+        [BsonElement("usageExamples")]
+        public string[] UsageExamples { get; set; }
+        
+        [BsonElement("etymology")]
+        public string Etymology { get; set; }
+        
+        [BsonElement("definition")]
+        public string Definition { get; set; }
+        
+        [BsonElement("youGlishLink")]
+        public string YouGlishLink { get; set; }
     }
 }

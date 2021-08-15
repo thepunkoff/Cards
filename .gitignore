@@ -5,3 +5,5 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 */**/Grpc/Generated/*.cs
+*config.json
+/build

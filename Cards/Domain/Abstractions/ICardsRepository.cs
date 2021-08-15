@@ -1,9 +1,13 @@
-﻿using Cards.Domain.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
+using Cards.Domain.Models;
 
 namespace Cards.Domain.Abstractions
 {
     public interface ICardsRepository
     {
-        void AddCard(Card card);
+        Task AddCard(Card card);
+        
+        Task<(bool Exists, Card? Card)> GetCard(string word);
     }
 }
