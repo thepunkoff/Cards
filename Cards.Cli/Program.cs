@@ -8,7 +8,7 @@ namespace Cli
     {
         public static async Task Main(string[] args)
         {
-            using var client = new CardsClient("http://localhost:2300");
+            using var client = new CardsClient("http://localhost:25204");
             var card = await client.GetCard(args[0]);
             Console.WriteLine(card);
         }

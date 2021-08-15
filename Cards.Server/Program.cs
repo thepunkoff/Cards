@@ -1,5 +1,9 @@
 ﻿using System;
+using System.IO;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Cards.Configuration;
 using Cards.Grpc.Generated;
 using Grpc.Core;
 
@@ -9,17 +13,18 @@ namespace Cards
     {
         public static async Task Main()
         {
+            var config = JsonSerializer.Deserialize<GrpcServerConfiguration>(await File.ReadAllTextAsync("./Configuration/server.json"));
             var server = new Server
             {
                 Services = { CardsService.BindService(new Grpc.CardsService()) },
-                Ports = { new ServerPort("localhost", 2300, ServerCredentials.Insecure) }
+                Ports = { new ServerPort(config.Host, config.Port, ServerCredentials.Insecure) }
             };
+
             server.Start();
 
-            Console.WriteLine("Cards server listening on port " + 2300);
-            Console.WriteLine("Press any key to stop the server...");
-            Console.ReadKey();
-            await server.ShutdownAsync();
+            Console.WriteLine($"Cards server listening on {config.Host}:{config.Port}");
+
+            Thread.Sleep(Timeout.Infinite);
         }
     }
 }

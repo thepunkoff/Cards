@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Configuration\config.json">
+      <None Update="Configuration\bot.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

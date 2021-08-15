@@ -30,5 +30,11 @@
         <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
         <PackageReference Include="IBM.Watson.LanguageTranslator.v3" Version="5.2.0" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <None Update="Configuration\domain.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 
 </Project>

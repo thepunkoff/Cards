@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Cards.Configuration;
 using Cards.Grpc.Generated;
 using Grpc.Core;
@@ -11,9 +13,7 @@ namespace Cards.Grpc
 
         public CardsService()
         {
-            const string connectionString = "mongodb://localhost:27017/?serverSelectionTimeoutMS=5000";
-            const string databaseName = "cards";
-            var config = new CardsSeviceConfiguration(connectionString, databaseName);
+            var config = JsonSerializer.Deserialize<CardsSeviceConfiguration>(File.ReadAllText("./Configuration/domain.json"));
             _domainService = new Domain.CardsService(config);
         }
 

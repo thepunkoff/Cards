@@ -2,12 +2,8 @@
 {
     public class CardsSeviceConfiguration
     {
-        public CardsSeviceConfiguration(string mongoConnectionString, string mongoDatabaseName)
-        {
-            MongoConnectionString = mongoConnectionString;
-            MongoDatabaseName = mongoDatabaseName;
-        }
-        
+        public string IbmCloudToken { get; init; }
+
         public string MongoConnectionString { get; init; }
         
         public string MongoDatabaseName { get; init; }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
+using Cards.Telegram.Configuration;
 using Telegram.Bot;
 
 namespace Cards.Telegram
@@ -15,9 +15,9 @@ namespace Cards.Telegram
 
         public async Task RunForever()
         {
-            var token = await File.ReadAllTextAsync(Path.Combine(Environment.CurrentDirectory, "Configuration", "token.txt"));
-            _botClient = new TelegramBotClient(token);
-            _cardsClient = new CardsClient("http://localhost:2300");
+            var config = JsonSerializer.Deserialize<TelegramBotConfiguration>(await File.ReadAllTextAsync("./Configuration/bot.json"));
+            _botClient = new TelegramBotClient(config.Token);
+            _cardsClient = new CardsClient(config.CardsAddress);
 
             _botClient.OnMessage += async (_, args) =>
             {

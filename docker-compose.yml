@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  cards:
+    image: thepunkoff/cardsserver:latest
+    restart: "no"
+    volumes:
+      - "./Configuration:/App/Configuration"
+    
+  telegram:
+    image: thepunkoff/cardstelegram:latest
+    restart: "no"
+    volumes:
+      - "./Configuration:/App/Configuration"
+
+  mongo:
+    image: mongo:4
+    restart: "no"
+    command: mongod
+    ports:
+      - "27017:27017"

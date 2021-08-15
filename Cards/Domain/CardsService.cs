@@ -27,7 +27,7 @@ namespace Cards.Domain
             _cardsRepository = new MongoDbCardsRepository(config.MongoConnectionString, config.MongoDatabaseName);
 
             _httpClient = new HttpClient();
-            string apiKeyString = Convert.ToBase64String(Encoding.ASCII.GetBytes("apikey:8V3n2r93S4UW1IP5Nu7kB6Qa-iHKQxEW4g8IRFB5Es44"));
+            string apiKeyString = Convert.ToBase64String(Encoding.ASCII.GetBytes($"apikey:{config.IbmCloudToken}"));
             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {apiKeyString}");
         }
         

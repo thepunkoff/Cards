@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:5.0-alpine
+﻿FROM mcr.microsoft.com/dotnet/runtime:6.0-alpine
 COPY ../build/Telegram App/
 WORKDIR /App
 ENTRYPOINT ["dotnet", "Cards.Telegram.dll"]
