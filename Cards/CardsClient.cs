@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
 using Card = Cards.Domain.Models.Card;
@@ -15,13 +16,14 @@ namespace Cards
             _channel = GrpcChannel.ForAddress(address);
             _cardsProxy = new CardsGrpcProxy(_channel);
         }
-        public Task<Card> GetCard(string word)
+        public Task<Card> GetCard(string word, CancellationToken token = default)
         {
             return _cardsProxy.GetCard(
                 word,
                 req => req.ToGetCardRequestGrpc(),
-                (client, request) => client.GetCardAsync(request),
-                res => res.ToDomain());
+                (client, request, t) => client.GetCardAsync(request, cancellationToken: t),
+                res => res.ToDomain(),
+                token);
         }
 
         public void Dispose()

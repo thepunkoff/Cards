@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp;
 using Cards.Configuration;
@@ -31,18 +32,18 @@ namespace Cards.Domain
             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {apiKeyString}");
         }
         
-        public async Task<Card> GetCard(string word)
+        public async Task<Card> GetCard(string word, CancellationToken token)
         {
             if (!Regex.IsMatch(word, WordPattern))
                 throw new InvalidInputException("Word should contain only alphanumeric characters and shouldn't contain whitespaces.");
             
-            var (exists, card) = await _cardsRepository.GetCard(word);
+            var (exists, card) = await _cardsRepository.GetCard(word, token);
             if (exists)
                 return card!;
             
-            var (definition, usageExamples) = await GetDefinitionAndUsageExamples(word);
-            var translations = await GetTranslations(word);
-            var etymology = await GetEtymology(word);
+            var (definition, usageExamples) = await GetDefinitionAndUsageExamples(word, token);
+            var translations = await GetTranslations(word, token);
+            var etymology = await GetEtymology(word, token);
             var youGlishLink = GetYouGlishLink(word);
             
             card = new Card(word.ToLowerInvariant(), translations, usageExamples, etymology, definition, youGlishLink);
@@ -52,10 +53,10 @@ namespace Cards.Domain
             return card;
         }
 
-        private async Task<string[]> GetTranslations(string word)
+        private async Task<string[]> GetTranslations(string word, CancellationToken token)
         {
-            var response = await _httpClient.PostAsync(TranslationUri, new StringContent($"{{\"text\": \"{word}\", \"model_id\":\"en-ru\"}}", Encoding.UTF8, "application/json"));
-            var responseString = await response.Content.ReadAsStringAsync();
+            var response = await _httpClient.PostAsync(TranslationUri, new StringContent($"{{\"text\": \"{word}\", \"model_id\":\"en-ru\"}}", Encoding.UTF8, "application/json"), token);
+            var responseString = await response.Content.ReadAsStringAsync(token);
             JObject json = JObject.Parse(responseString);
             var jTranslations = (JArray)json.Root["translations"]!;
             var translationStrings = jTranslations.Select(x => x["translation"]!.ToString()).ToArray();
@@ -68,21 +69,21 @@ namespace Cards.Domain
             return new[] { "fake usage example 1", "fake usage example 2" };
         }
 
-        private async Task<string> GetEtymology(string word)
+        private async Task<string> GetEtymology(string word, CancellationToken token)
         {
             // https://dictionaryapi.dev/
 
-            var response = await _httpClient.GetStringAsync($"https://www.etymonline.com/search?q={word}");
+            var response = await _httpClient.GetStringAsync($"https://www.etymonline.com/search?q={word}", token);
             var config = AngleSharp.Configuration.Default;
             using var context = BrowsingContext.New(config);
-            using var doc = await context.OpenAsync(req => req.Content(response));
+            using var doc = await context.OpenAsync(req => req.Content(response), token);
             var firstParagraph = doc.QuerySelectorAll("section[class*='word__defination'] > p")[0];
             return firstParagraph.TextContent;
         }
 
-        private async Task<(string, string[])> GetDefinitionAndUsageExamples(string word)
+        private async Task<(string, string[])> GetDefinitionAndUsageExamples(string word, CancellationToken token)
         {
-            var response = await _httpClient.GetStringAsync($"https://api.dictionaryapi.dev/api/v2/entries/en/{word}");
+            var response = await _httpClient.GetStringAsync($"https://api.dictionaryapi.dev/api/v2/entries/en/{word}", token);
             JArray jArray = JArray.Parse(response);
             var meanings = (JArray)((JObject)jArray[0]).Property("meanings").Value;
             var definitions = (JArray)((JObject)meanings[0]).Property("definitions").Value;

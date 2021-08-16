@@ -24,7 +24,7 @@ namespace Cards
 
             server.Start();
 
-            Console.WriteLine($"Cards server listening on {config.Host}:{config.Port}");
+            Console.WriteLine($"Cards server started listening on {config.Host}:{config.Port}.");
 
             Thread.Sleep(Timeout.Infinite);
         }

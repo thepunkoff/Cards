@@ -22,7 +22,7 @@ namespace Cards.Grpc
         {
             try
             {
-                var domainCard = await _domainService.GetCard(request.ToDomain());
+                var domainCard = await _domainService.GetCard(request.ToDomain(), context.CancellationToken);
                 return domainCard.ToGrpc();
             }
             catch (Exception ex)

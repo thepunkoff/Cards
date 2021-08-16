@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
@@ -20,15 +21,13 @@ namespace Cards.Mongo
                 .GetCollection<CardDocument>(CardDocument.CardsCollectionName); 
         }
 
-        // TODO: CancellationToken
-        public async Task<(bool Exists, Card? Card)> GetCard(string word)
+        public async Task<(bool Exists, Card? Card)> GetCard(string word, CancellationToken token = default)
         {
             try
             {
-
                 var filter = new FilterDefinitionBuilder<CardDocument>().Eq(x => x.EnglishWord, word);
 
-                var count = await _rawMongoCollection.CountDocumentsAsync(filter);
+                var count = await _rawMongoCollection.CountDocumentsAsync(filter, cancellationToken: token);
 
                 switch (count)
                 {
@@ -39,8 +38,8 @@ namespace Cards.Mongo
                         return (false, null);
                     default:
                     {
-                        var crs = await _rawMongoCollection.FindAsync(filter);
-                        await crs.MoveNextAsync();
+                        var crs = await _rawMongoCollection.FindAsync(filter, cancellationToken: token);
+                        await crs.MoveNextAsync(token);
                         var card = crs.Current.ElementAt(0).ToDomain();
                         return (true, card);
                     }
@@ -51,15 +50,13 @@ namespace Cards.Mongo
                 throw new MongoUnavailableException(ex.Message);
             }
         }
-        
-        // TODO: CancellationToken
-        // TODO: Check result
-        public async Task AddCard(Card card)
+
+        public async Task AddCard(Card card, CancellationToken token)
         {
             try
             {
-                await _rawMongoCollection.InsertOneAsync(card.ToMongo());
-                Console.WriteLine($"New card added: {{ {card.EnglishWord} - {card.RussianTranslations[0]} }}");
+                await _rawMongoCollection.InsertOneAsync(card.ToMongo(), cancellationToken: token);
+                Console.WriteLine($"New card added:\n{card}");
             }
             catch (Exception ex) when (ex is MongoConnectionException or TimeoutException)
             {
