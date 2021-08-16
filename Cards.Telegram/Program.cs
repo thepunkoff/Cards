@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Cards.Telegram.Configuration;
 
 namespace Cards.Telegram
 {
@@ -6,8 +9,10 @@ namespace Cards.Telegram
     {
         public static async Task Main()
         {
-            var bot = new CardsBot();
-            await bot.RunForever();
+            var configFile = await File.ReadAllTextAsync("./Configuration/bot.json");
+            var config = JsonSerializer.Deserialize<CardsBotConfiguration>(configFile);
+            var bot = new CardsBot(config);
+            bot.RunForever();
         }
     }
 }

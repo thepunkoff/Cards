@@ -27,7 +27,7 @@ namespace Cards.Grpc
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception occured:\n{ex}");
+                Console.WriteLine($"Domain exception occured:\n{ex}");
                 throw;
             }
         }

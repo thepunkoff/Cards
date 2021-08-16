@@ -88,13 +88,14 @@ namespace Cards.Domain
             var meanings = (JArray)((JObject)jArray[0]).Property("meanings").Value;
             var definitions = (JArray)((JObject)meanings[0]).Property("definitions").Value;
             var definition = ((JObject) definitions[0]).Property("definition").Value.ToString();
-            var usageExample = ((JObject) definitions[0]).Property("example")?.Value.ToString() ?? "fake usage";
+            var usageExample = ((JObject) definitions[0]).Property("example")?.Value.ToString() ?? "Unknown";
+            usageExample = string.Concat(usageExample.First().ToString().ToUpper(), usageExample.AsSpan(1));
             return (definition, new[] { usageExample });
         }
 
         private static string GetYouGlishLink(string word)
         {
-            return $"https://youglish.com/pronounce/{word}/english?";
+            return $"https://youglish.com/pronounce/{word}/english";
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Cards.Telegram.Configuration
 {
-    public class TelegramBotConfiguration
+    public class CardsBotConfiguration
     {
         public string Token { get; init; }
 

@@ -1,34 +1,36 @@
 ﻿using System;
-using System.IO;
-using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using Cards.Telegram.Configuration;
 using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 
 namespace Cards.Telegram
 {
     public class CardsBot : IDisposable
     {
-        private TelegramBotClient _botClient;
-        private CardsClient _cardsClient;
+        private readonly TelegramBotClient _botClient;
+        private readonly CardsClient _cardsClient;
 
-        public async Task RunForever()
+        public CardsBot(CardsBotConfiguration config)
         {
-            var config = JsonSerializer.Deserialize<TelegramBotConfiguration>(await File.ReadAllTextAsync("./Configuration/bot.json"));
             _botClient = new TelegramBotClient(config.Token);
             _cardsClient = new CardsClient(config.CardsAddress);
-
+        }
+        
+        public void RunForever()
+        {
             _botClient.OnMessage += async (_, args) =>
             {
                 try
                 {
-                    var cardsResponse = await _cardsClient.GetCard(args.Message.Text);
-                    await _botClient.SendTextMessageAsync(args.Message.From.Id, cardsResponse.ToString());
+                    var card = await _cardsClient.GetCard(args.Message.Text);
+                    var wordSummary = card.ToTelegramMarkdownString();
+                    await _botClient.SendTextMessageAsync(args.Message.From.Id, wordSummary, parseMode: ParseMode.Markdown);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.ToString());
+                    await _botClient.SendTextMessageAsync(args.Message.From.Id, "Произошла ошибка.");
                 }
             };
             
