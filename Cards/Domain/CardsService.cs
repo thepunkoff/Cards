@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp;
+using AngleSharp.Html.Dom;
 using Cards.Configuration;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
@@ -77,8 +78,10 @@ namespace Cards.Domain
             var config = AngleSharp.Configuration.Default;
             using var context = BrowsingContext.New(config);
             using var doc = await context.OpenAsync(req => req.Content(response), token);
-            var firstParagraph = doc.QuerySelectorAll("section[class*='word__defination'] > p")[0];
-            return firstParagraph.TextContent;
+            var etymology = doc.QuerySelectorAll("section[class*='word__defination']")[0];
+            return etymology.Children[0] is IHtmlParagraphElement
+                ? etymology.Children[0].TextContent
+                : etymology.TextContent;
         }
 
         private async Task<(string, string[])> GetDefinitionAndUsageExamples(string word, CancellationToken token)
