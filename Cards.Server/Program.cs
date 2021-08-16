@@ -4,8 +4,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Cards.Configuration;
-using Cards.Grpc.Generated;
+using Cards.Grpc;
 using Grpc.Core;
+using Grpc.Core.Interceptors;
+using CardsService = Cards.Grpc.Generated.CardsService;
 
 namespace Cards
 {
@@ -16,7 +18,7 @@ namespace Cards
             var config = JsonSerializer.Deserialize<GrpcServerConfiguration>(await File.ReadAllTextAsync("./Configuration/server.json"));
             var server = new Server
             {
-                Services = { CardsService.BindService(new Grpc.CardsService()) },
+                Services = { CardsService.BindService(new Grpc.CardsService()).Intercept(new CardsInterceptor()) },
                 Ports = { new ServerPort(config.Host, config.Port, ServerCredentials.Insecure) }
             };
 

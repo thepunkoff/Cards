@@ -1,4 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using Cards.Grpc.Generated;
+using Cards.Mongo.Models;
+using Card = Cards.Domain.Models.Card;
 
 namespace Cards
 {
@@ -6,66 +10,78 @@ namespace Cards
     {
         #region Grpc
 
-        public static Domain.Models.Card ToDomain(this Grpc.Generated.Card grpc)
+        public static Card ToDomain(this Grpc.Generated.Card grpcCard)
         {
-            return new(
-                grpc.EnglishWord,
-                grpc.RussianTranslations.ToArray(),
-                grpc.UsageExamples.ToArray(),
-                grpc.Etymology,
-                grpc.Definition,
-                grpc.YouGlishLink);
+            _ = grpcCard ?? throw new ArgumentNullException(nameof(grpcCard));
+            
+            return new Card(
+                grpcCard.EnglishWord,
+                grpcCard.RussianTranslations.ToArray(),
+                grpcCard.UsageExamples.ToArray(),
+                grpcCard.Etymology,
+                grpcCard.Definition,
+                grpcCard.YouGlishLink);
         }
         
-        public static Grpc.Generated.Card ToGrpc(this Domain.Models.Card domain)
+        public static Grpc.Generated.Card ToGrpc(this Card domainCard)
         {
+            _ = domainCard ?? throw new ArgumentNullException(nameof(domainCard));
+            
             var grpcModel =  new Grpc.Generated.Card
             {
-                EnglishWord = domain.EnglishWord,
-                Definition = domain.Definition,
-                Etymology = domain.Etymology,
-                YouGlishLink = domain.YouGlishLink
+                EnglishWord = domainCard.EnglishWord,
+                Definition = domainCard.Definition,
+                Etymology = domainCard.Etymology,
+                YouGlishLink = domainCard.YouGlishLink
             };
-            grpcModel.RussianTranslations.AddRange(domain.RussianTranslations);
-            grpcModel.UsageExamples.AddRange(domain.UsageExamples);
+            grpcModel.RussianTranslations.AddRange(domainCard.RussianTranslations);
+            grpcModel.UsageExamples.AddRange(domainCard.UsageExamples);
 
             return grpcModel;
         }
 
-        public static string ToDomain(this Grpc.Generated.GetCardRequest grpc)
+        public static string ToDomain(this GetCardRequest grpcGetCardRequest)
         {
-            return grpc.Word;
+            _ = grpcGetCardRequest ?? throw new ArgumentNullException(nameof(grpcGetCardRequest));
+            
+            return grpcGetCardRequest.Word;
         }
         
-        public static Grpc.Generated.GetCardRequest ToGetCardRequestGrpc(this string domain)
+        public static GetCardRequest ToGetCardRequestGrpc(this string domainString)
         {
-            return new(){ Word = domain };
+            _ = domainString ?? throw new ArgumentNullException(nameof(domainString));
+            
+            return new GetCardRequest { Word = domainString };
         }
 
         #endregion
 
         #region MongoDb
         
-        public static Domain.Models.Card ToDomain(this Mongo.Models.CardDocument mongo)
+        public static Card ToDomain(this CardDocument mongoCardDocument)
         {
-            return new(
-                mongo.EnglishWord,
-                mongo.RussianTranslations,
-                mongo.UsageExamples,
-                mongo.Etymology,
-                mongo.Definition,
-                mongo.YouGlishLink);
+            _ = mongoCardDocument ?? throw new ArgumentNullException(nameof(mongoCardDocument));
+            
+            return new Card(
+                mongoCardDocument.EnglishWord,
+                mongoCardDocument.RussianTranslations,
+                mongoCardDocument.UsageExamples,
+                mongoCardDocument.Etymology,
+                mongoCardDocument.Definition,
+                mongoCardDocument.YouGlishLink);
         }
         
-        public static Mongo.Models.CardDocument ToMongo(this Domain.Models.Card domain)
+        public static CardDocument ToMongo(this Card domainCard)
         {
-            return new(
-                domain.EnglishWord,
-                domain.RussianTranslations,
-                domain.UsageExamples,
-                domain.Etymology,
-                domain.Definition,
-                domain.YouGlishLink);
+            _ = domainCard ?? throw new ArgumentNullException(nameof(domainCard));
+            
+            return new CardDocument(
+                domainCard.EnglishWord,
+                domainCard.RussianTranslations,
+                domainCard.UsageExamples,
+                domainCard.Etymology,
+                domainCard.Definition,
+                domainCard.YouGlishLink);
         }
 
         #endregion

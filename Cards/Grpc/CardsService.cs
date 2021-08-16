@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Cards.Configuration;
@@ -19,8 +20,16 @@ namespace Cards.Grpc
 
         public override async Task<Card> GetCard(GetCardRequest request, ServerCallContext context)
         {
-            var domainCard = await _domainService.GetCard(request.ToDomain());
-            return domainCard.ToGrpc();
+            try
+            {
+                var domainCard = await _domainService.GetCard(request.ToDomain());
+                return domainCard.ToGrpc();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception occured:\n{ex}");
+                throw;
+            }
         }
     }
 }

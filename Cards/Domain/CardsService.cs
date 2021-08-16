@@ -8,8 +8,8 @@ using AngleSharp;
 using Cards.Configuration;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
+using Cards.Exceptions;
 using Cards.Mongo;
-using Grpc.Core;
 using Newtonsoft.Json.Linq;
 
 namespace Cards.Domain
@@ -34,8 +34,7 @@ namespace Cards.Domain
         public async Task<Card> GetCard(string word)
         {
             if (!Regex.IsMatch(word, WordPattern))
-                // TODO: Бросать доменное исключение и преобразовывать в Grpc-шное
-                throw new RpcException(new Status(StatusCode.InvalidArgument, "Word shouldn't contain whitespaces."));
+                throw new InvalidInputException("Word should contain only alphanumeric characters and shouldn't contain whitespaces.");
             
             var (exists, card) = await _cardsRepository.GetCard(word);
             if (exists)

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
+using Cards.Exceptions;
 using Cards.Mongo.Models;
 using MongoDB.Driver;
 
@@ -22,24 +23,32 @@ namespace Cards.Mongo
         // TODO: CancellationToken
         public async Task<(bool Exists, Card? Card)> GetCard(string word)
         {
-            var filter = new FilterDefinitionBuilder<CardDocument>().Eq(x => x.EnglishWord, word);
-
-            var count = await _rawMongoCollection.CountDocumentsAsync(filter);
-
-            switch (count)
+            try
             {
-                case > 1:
-                case < 0:
-                    throw new Exception($"There were {count} entries in database for word {word}!");
-                case 0:
-                    return (false, null);
-                default:
+
+                var filter = new FilterDefinitionBuilder<CardDocument>().Eq(x => x.EnglishWord, word);
+
+                var count = await _rawMongoCollection.CountDocumentsAsync(filter);
+
+                switch (count)
                 {
-                    var crs = await _rawMongoCollection.FindAsync(filter);
-                    await crs.MoveNextAsync();
-                    var card = crs.Current.ElementAt(0).ToDomain();
-                    return (true, card);
+                    case > 1:
+                    case < 0:
+                        throw new Exception($"There were {count} entries in database for word {word}!");
+                    case 0:
+                        return (false, null);
+                    default:
+                    {
+                        var crs = await _rawMongoCollection.FindAsync(filter);
+                        await crs.MoveNextAsync();
+                        var card = crs.Current.ElementAt(0).ToDomain();
+                        return (true, card);
+                    }
                 }
+            }
+            catch (Exception ex) when (ex is MongoConnectionException or TimeoutException)
+            {
+                throw new MongoUnavailableException(ex.Message);
             }
         }
         
@@ -47,8 +56,15 @@ namespace Cards.Mongo
         // TODO: Check result
         public async Task AddCard(Card card)
         {
-            await _rawMongoCollection.InsertOneAsync(card.ToMongo());
-            Console.WriteLine($"New card added: {{ {card.EnglishWord} - {card.RussianTranslations[0]} }}");
+            try
+            {
+                await _rawMongoCollection.InsertOneAsync(card.ToMongo());
+                Console.WriteLine($"New card added: {{ {card.EnglishWord} - {card.RussianTranslations[0]} }}");
+            }
+            catch (Exception ex) when (ex is MongoConnectionException or TimeoutException)
+            {
+                throw new MongoUnavailableException(ex.Message);
+            }
         }
     }
 }
