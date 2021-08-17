@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cards.Domain.Models;
 using Grpc.Net.Client;
 using Card = Cards.Domain.Models.Card;
 
@@ -16,12 +17,32 @@ namespace Cards
             _channel = GrpcChannel.ForAddress(address);
             _cardsProxy = new CardsGrpcProxy(_channel);
         }
-        public Task<Card> GetCard(string word, CancellationToken token = default)
+        public Task<Card> GetCard(GetCardRequest word, CancellationToken token = default)
         {
             return _cardsProxy.GetCard(
                 word,
-                req => req.ToGetCardRequestGrpc(),
+                req => req.ToGrpc(),
                 (client, request, t) => client.GetCardAsync(request, cancellationToken: t),
+                res => res.ToDomain(),
+                token);
+        }
+
+        public Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default)
+        {
+            return _cardsProxy.Login(
+                loginRequest,
+                req => req.ToGrpc(),
+                (client, request, t) => client.LoginAsync(request, cancellationToken: t),
+                res => res.ToDomain(),
+                token);
+        }
+
+        public Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
+        {
+            return _cardsProxy.GetCardForReview(
+                getCardForReviewRequest,
+                req => req.ToGrpc(),
+                (client, request, t) => client.GetCardForReviewAsync(request, cancellationToken: t),
                 res => res.ToDomain(),
                 token);
         }

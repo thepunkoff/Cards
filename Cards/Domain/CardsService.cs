@@ -33,8 +33,20 @@ namespace Cards.Domain
             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {apiKeyString}");
         }
         
-        public async Task<Card> GetCard(string word, CancellationToken token)
+        public Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default)
         {
+            throw new NotImplementedException();
+        }
+
+        public Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public async Task<Card> GetCard(GetCardRequest getCardRequest, CancellationToken token)
+        {
+            var word = getCardRequest.Word;
+
             if (!Regex.IsMatch(word, WordPattern))
                 throw new InvalidInputException("Word should contain only alphanumeric characters and shouldn't contain whitespaces.");
             

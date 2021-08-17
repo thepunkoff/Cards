@@ -10,6 +10,50 @@ namespace Cards
     {
         #region Grpc
 
+        public static LoginRequest ToGrpc(this Domain.Models.LoginRequest domainLoginRequest)
+        {
+            _ = domainLoginRequest ?? throw new ArgumentNullException(nameof(domainLoginRequest));
+            
+            return new LoginRequest
+            {
+                Username = domainLoginRequest.Username,
+                Password = domainLoginRequest.Password
+            };
+        }
+        
+        public static Domain.Models.LoginRequest ToDomain(this LoginRequest grpcLoginRequest)
+        {
+            _ = grpcLoginRequest ?? throw new ArgumentNullException(nameof(grpcLoginRequest));
+
+            return new Domain.Models.LoginRequest
+            {
+                Username = grpcLoginRequest.Username,
+                Password = grpcLoginRequest.Password
+            };
+        }
+        
+        public static LoginResponse ToGrpc(this Domain.Models.LoginResponse domainLoginResponse)
+        {
+            _ = domainLoginResponse ?? throw new ArgumentNullException(nameof(domainLoginResponse));
+            
+            return new LoginResponse
+            {
+                Status = domainLoginResponse.Status,
+                UserToken = domainLoginResponse.UserToken
+            };
+        }
+        
+        public static Domain.Models.LoginResponse ToDomain(this LoginResponse grpcLoginResponse)
+        {
+            _ = grpcLoginResponse ?? throw new ArgumentNullException(nameof(grpcLoginResponse));
+
+            return new Domain.Models.LoginResponse
+            {
+                Status = grpcLoginResponse.Status,
+                UserToken = grpcLoginResponse.UserToken
+            };
+        }
+        
         public static Card ToDomain(this Grpc.Generated.Card grpcCard)
         {
             _ = grpcCard ?? throw new ArgumentNullException(nameof(grpcCard));
@@ -40,18 +84,32 @@ namespace Cards
             return grpcModel;
         }
 
-        public static string ToDomain(this GetCardRequest grpcGetCardRequest)
+        public static Domain.Models.GetCardRequest ToDomain(this GetCardRequest grpcGetCardRequest)
         {
             _ = grpcGetCardRequest ?? throw new ArgumentNullException(nameof(grpcGetCardRequest));
             
-            return grpcGetCardRequest.Word;
+            return new Domain.Models.GetCardRequest { Word = grpcGetCardRequest.Word};
         }
         
-        public static GetCardRequest ToGetCardRequestGrpc(this string domainString)
+        public static GetCardRequest ToGrpc(this Domain.Models.GetCardRequest domainGetCardRequest)
         {
-            _ = domainString ?? throw new ArgumentNullException(nameof(domainString));
+            _ = domainGetCardRequest ?? throw new ArgumentNullException(nameof(domainGetCardRequest));
             
-            return new GetCardRequest { Word = domainString };
+            return new GetCardRequest { Word = domainGetCardRequest.Word };
+        }
+
+        public static Domain.Models.GetCardForReviewRequest ToDomain(this GetCardForReviewRequest grpcGetCardForReviewRequest)
+        {
+            _ = grpcGetCardForReviewRequest ?? throw new ArgumentNullException(nameof(grpcGetCardForReviewRequest));
+            
+            return new Domain.Models.GetCardForReviewRequest { UserToken = grpcGetCardForReviewRequest.UserToken };
+        }
+        
+        public static GetCardForReviewRequest ToGrpc(this Domain.Models.GetCardForReviewRequest domainGetCardForReviewRequest)
+        {
+            _ = domainGetCardForReviewRequest ?? throw new ArgumentNullException(nameof(domainGetCardForReviewRequest));
+            
+            return new GetCardForReviewRequest { UserToken = domainGetCardForReviewRequest.UserToken };
         }
 
         #endregion

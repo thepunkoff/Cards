@@ -6,10 +6,30 @@ option csharp_namespace = "Cards.Grpc.Generated";
 service CardsService {
   // Получить информацию по слову.
   rpc GetCard(GetCardRequest) returns (Card);
+
+  // Войти в систему.
+  rpc Login(LoginRequest) returns (LoginResponse);
+  
+  // Получить следующую карточку для ревью.
+  rpc GetCardForReview(GetCardForReviewRequest) returns (Card);
 }
 
 message GetCardRequest {
   string Word = 1;
+}
+
+message GetCardForReviewRequest {
+  string UserToken = 1;
+}
+
+message LoginRequest {
+  string Username = 1;
+  string Password = 2;
+}
+
+message LoginResponse {
+  bool Status = 1;
+  string UserToken = 2;
 }
 
 message Card {

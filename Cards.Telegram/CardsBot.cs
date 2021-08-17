@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Cards.Domain.Models;
 using Cards.Telegram.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
@@ -23,7 +24,7 @@ namespace Cards.Telegram
             {
                 try
                 {
-                    var card = await _cardsClient.GetCard(args.Message.Text);
+                    var card = await _cardsClient.GetCard(new GetCardRequest { Word = args.Message.Text });
                     var wordSummary = card.ToTelegramMarkdownString();
                     await _botClient.SendTextMessageAsync(args.Message.From.Id, wordSummary, parseMode: ParseMode.Markdown);
                 }

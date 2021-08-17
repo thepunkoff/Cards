@@ -6,6 +6,10 @@ namespace Cards
 {
     public interface ICardsService
     {
-        Task<Card> GetCard(string word, CancellationToken token = default);
+        Task<Card> GetCard(GetCardRequest getCardRequest, CancellationToken token = default);
+        
+        Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default);
+        
+        Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default);
     }
 }
