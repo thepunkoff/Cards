@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
 using Cards.Exceptions;
+using Cards.IdentityManagement.Models;
 using Cards.Mongo.Models;
 using MongoDB.Driver;
 
@@ -49,6 +50,11 @@ namespace Cards.Mongo
             {
                 throw new MongoUnavailableException(ex.Message);
             }
+        }
+
+        public Task<Card> GetAnyCardForIdentity(Identity identity, CancellationToken token = default)
+        {
+            return Task.FromResult(new Card(identity.Username, new[] {"lol"}, new[] {"poop"}, "lmao", "sex", "www"));
         }
 
         public async Task AddCard(Card card, CancellationToken token)

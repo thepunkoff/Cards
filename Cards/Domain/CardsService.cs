@@ -11,6 +11,7 @@ using Cards.Configuration;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
 using Cards.Exceptions;
+using Cards.IdentityManagement;
 using Cards.Mongo;
 using Newtonsoft.Json.Linq;
 
@@ -20,27 +21,35 @@ namespace Cards.Domain
     {
         private const string? TranslationUri = "https://api.au-syd.language-translator.watson.cloud.ibm.com/instances/fe9a7f5f-c00f-4453-862b-3092c93cef14/v3/translate?version=2018-05-01";
         private const string WordPattern = @"^[a-zA-Zа-яА-Я]*$";
-        
+
+        private readonly IIdentityManager _identityManager;
         private readonly ICardsRepository _cardsRepository;
         private readonly HttpClient _httpClient;
 
         public CardsService(CardsSeviceConfiguration config)
         {
             _cardsRepository = new MongoDbCardsRepository(config.MongoConnectionString, config.MongoDatabaseName);
+            _identityManager = new InMemoryIdentityManager();
 
             _httpClient = new HttpClient();
             string apiKeyString = Convert.ToBase64String(Encoding.ASCII.GetBytes($"apikey:{config.IbmCloudToken}"));
             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {apiKeyString}");
         }
         
-        public Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default)
+        public async Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var (ok, userToken) = await _identityManager.TryLogin(loginRequest.Username, loginRequest.Password);
+            return new LoginResponse { Status = ok, UserToken = ok ? userToken! : string.Empty };
         }
 
-        public Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
+        public async Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var (ok, identity) = await _identityManager.TryGetIdentity(getCardForReviewRequest.UserToken);
+
+            if (!ok)
+                throw new NotLoggedInException("User is not logged in.");
+
+            return await _cardsRepository.GetAnyCardForIdentity(identity!.Value, token);
         }
         
         public async Task<Card> GetCard(GetCardRequest getCardRequest, CancellationToken token)
