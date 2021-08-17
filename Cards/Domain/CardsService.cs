@@ -49,7 +49,7 @@ namespace Cards.Domain
             
             card = new Card(word.ToLowerInvariant(), translations, usageExamples, etymology, definition, youGlishLink);
             
-            await _cardsRepository.AddCard(card);
+            await _cardsRepository.AddCard(card, token);
 
             return card;
         }
