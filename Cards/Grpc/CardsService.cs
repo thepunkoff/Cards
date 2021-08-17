@@ -31,5 +31,33 @@ namespace Cards.Grpc
                 throw;
             }
         }
+        
+        public override async Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var domainCard = await _domainService.Login(request.ToDomain(), context.CancellationToken);
+                return domainCard.ToGrpc();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Domain exception occured:\n{ex}");
+                throw;
+            }
+        }
+        
+        public override async Task<Card> GetCardForReview(GetCardForReviewRequest request, ServerCallContext context)
+        {
+            try
+            {
+                var domainCard = await _domainService.GetCardForReview(request.ToDomain(), context.CancellationToken);
+                return domainCard.ToGrpc();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Domain exception occured:\n{ex}");
+                throw;
+            }
+        }
     }
 }
