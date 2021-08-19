@@ -3,6 +3,8 @@ package cards.v1;
 
 option csharp_namespace = "Cards.Grpc.Generated";
 
+import "google/protobuf/empty.proto";
+
 service CardsService {
   // Получить информацию по слову.
   rpc GetCard(GetCardRequest) returns (Card);
@@ -12,6 +14,25 @@ service CardsService {
   
   // Получить следующую карточку для ревью.
   rpc GetCardForReview(GetCardForReviewRequest) returns (Card);
+
+  // Выучить карточку.
+  rpc GetKnownCards(GetKnownCardsRequest) returns (GetKnownCardsResponse);
+  
+  // Выучить карточку.
+  rpc LearnCard(LearnCardRequest) returns (google.protobuf.Empty);
+}
+
+message GetKnownCardsRequest {
+  string UserToken = 1;
+}
+
+message GetKnownCardsResponse {
+  repeated string KnownCardsIds = 1;
+}
+
+message LearnCardRequest {
+  string CardId = 1;
+  string UserToken = 2;
 }
 
 message GetCardRequest {
@@ -33,10 +54,11 @@ message LoginResponse {
 }
 
 message Card {
-  string EnglishWord = 1;
-  repeated string RussianTranslations = 2;
-  repeated string UsageExamples = 3;
-  string Etymology = 4;
-  string Definition = 5;
-  string YouGlishLink = 6;
+  string Id = 1;
+  string EnglishWord = 2;
+  repeated string RussianTranslations = 3;
+  repeated string UsageExamples = 4;
+  string Etymology = 5;
+  string Definition = 6;
+  string YouGlishLink = 7;
 }

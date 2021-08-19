@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Cards.Domain.Models;
+using Cards.Exceptions;
 using Cards.Telegram.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Cards.Telegram
 {
@@ -26,6 +28,11 @@ namespace Cards.Telegram
         
         public void RunForever()
         {
+            _botClient.OnCallbackQuery += async (_, args) =>
+            {
+                Console.WriteLine(args.CallbackQuery.Message);
+            };
+
             _botClient.OnMessage += async (_, args) =>
             {
                 try
@@ -37,7 +44,7 @@ namespace Cards.Telegram
                             await _botClient.SendTextMessageAsync(args.Message.From.Id, "Вы уже авторизованы в системе ;).");
                             return;
                         }
-                        
+
                         var text = args.Message.Text;
                         text = Regex.Replace(text, @"\s\s+", " ");
                         var loginArguments = text.Split(" ").Skip(1).ToArray();
@@ -51,7 +58,7 @@ namespace Cards.Telegram
                         var login = loginArguments[0];
                         var password = loginArguments[1];
 
-                        var response = await _cardsClient.Login(new LoginRequest { Username = login, Password = password });
+                        var response = await _cardsClient.Login(new LoginRequest {Username = login, Password = password});
 
                         if (!response.Status)
                         {
@@ -79,8 +86,25 @@ namespace Cards.Telegram
                     else
                     {
                         var card = await _cardsClient.GetCard(new GetCardRequest { Word = args.Message.Text });
+
+                        InlineKeyboardMarkup? keyboard = null;
+                        string learningText = string.Empty;
+                        if (_authorizedUsers.ContainsKey(args.Message.From.Id))
+                        {
+                            var userToken = _authorizedUsers[args.Message.From.Id];
+                            
+                            // TODO: cache
+                            var knownCards = await _cardsClient.GetKnownCards(new GetKnownCardsRequest { UserToken = userToken } );
+                            if (!knownCards.KnownCardsIds.Contains(card.Id))
+                                keyboard = new InlineKeyboardMarkup(
+                                    new[] {new InlineKeyboardButton("Learn", $"/learn {userToken} {card.Id}")});
+                            else
+                                learningText = "\n(You are learning this word)";
+                        }
+                        
+                            
                         var wordSummary = card.ToTelegramMarkdownString();
-                        await _botClient.SendTextMessageAsync(args.Message.From.Id, wordSummary, parseMode: ParseMode.Markdown);
+                        await _botClient.SendTextMessageAsync(args.Message.From.Id, wordSummary + learningText, parseMode: ParseMode.Markdown, replyMarkup: keyboard);
                     }
                 }
                 catch (Exception ex)

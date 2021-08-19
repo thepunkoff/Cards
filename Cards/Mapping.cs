@@ -10,6 +10,67 @@ namespace Cards
     {
         #region Grpc
 
+        public static GetKnownCardsRequest ToGrpc(this Domain.Models.GetKnownCardsRequest domainGetKnownCardsRequest)
+        {
+            _ = domainGetKnownCardsRequest ?? throw new ArgumentNullException(nameof(domainGetKnownCardsRequest));
+            
+            return new GetKnownCardsRequest
+            {
+                UserToken = domainGetKnownCardsRequest.UserToken
+            };
+        }
+        
+        public static Domain.Models.GetKnownCardsRequest ToDomain(this GetKnownCardsRequest domainGetKnownCardsRequest)
+        {
+            _ = domainGetKnownCardsRequest ?? throw new ArgumentNullException(nameof(domainGetKnownCardsRequest));
+            
+            return new Domain.Models.GetKnownCardsRequest
+            {
+                UserToken = domainGetKnownCardsRequest.UserToken
+            };
+        }
+        
+        public static GetKnownCardsResponse ToGrpc(this Domain.Models.GetKnownCardsResponse domainGetKnownCardsResponse)
+        {
+            _ = domainGetKnownCardsResponse ?? throw new ArgumentNullException(nameof(domainGetKnownCardsResponse));
+
+            var grpcResponse = new GetKnownCardsResponse();
+            grpcResponse.KnownCardsIds.AddRange(domainGetKnownCardsResponse.KnownCardsIds.Select(x => x.ToString()));
+            return grpcResponse;
+        }
+        
+        public static Domain.Models.GetKnownCardsResponse ToDomain(this GetKnownCardsResponse grpcGetKnownCardsResponse)
+        {
+            _ = grpcGetKnownCardsResponse ?? throw new ArgumentNullException(nameof(grpcGetKnownCardsResponse));
+            
+            return new Domain.Models.GetKnownCardsResponse
+            {
+                KnownCardsIds = grpcGetKnownCardsResponse.KnownCardsIds.Select(Guid.Parse).ToArray()
+            };
+        }
+        
+        public static LearnCardRequest ToGrpc(this Domain.Models.LearnCardRequest domainLearnCardRequest)
+        {
+            _ = domainLearnCardRequest ?? throw new ArgumentNullException(nameof(domainLearnCardRequest));
+            
+            return new LearnCardRequest
+            {
+                CardId = domainLearnCardRequest.CardId.ToString(),
+                UserToken = domainLearnCardRequest.UserToken
+            };
+        }
+        
+        public static Domain.Models.LearnCardRequest ToDomain(this LearnCardRequest grpcLearnCardRequest)
+        {
+            _ = grpcLearnCardRequest ?? throw new ArgumentNullException(nameof(grpcLearnCardRequest));
+            
+            return new Domain.Models.LearnCardRequest
+            {
+                CardId = Guid.Parse(grpcLearnCardRequest.CardId),
+                UserToken = grpcLearnCardRequest.UserToken
+            };
+        }
+        
         public static LoginRequest ToGrpc(this Domain.Models.LoginRequest domainLoginRequest)
         {
             _ = domainLoginRequest ?? throw new ArgumentNullException(nameof(domainLoginRequest));
@@ -59,6 +120,7 @@ namespace Cards
             _ = grpcCard ?? throw new ArgumentNullException(nameof(grpcCard));
             
             return new Card(
+                Guid.Parse(grpcCard.Id),
                 grpcCard.EnglishWord,
                 grpcCard.RussianTranslations.ToArray(),
                 grpcCard.UsageExamples.ToArray(),
@@ -73,6 +135,7 @@ namespace Cards
             
             var grpcModel =  new Grpc.Generated.Card
             {
+                Id = domainCard.Id.ToString(),
                 EnglishWord = domainCard.EnglishWord,
                 Definition = domainCard.Definition,
                 Etymology = domainCard.Etymology,
@@ -121,6 +184,7 @@ namespace Cards
             _ = mongoCardDocument ?? throw new ArgumentNullException(nameof(mongoCardDocument));
             
             return new Card(
+                mongoCardDocument.Id,
                 mongoCardDocument.EnglishWord,
                 mongoCardDocument.RussianTranslations,
                 mongoCardDocument.UsageExamples,
@@ -134,6 +198,7 @@ namespace Cards
             _ = domainCard ?? throw new ArgumentNullException(nameof(domainCard));
             
             return new CardDocument(
+                domainCard.Id,
                 domainCard.EnglishWord,
                 domainCard.RussianTranslations,
                 domainCard.UsageExamples,

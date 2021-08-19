@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Cards.Domain.Models
@@ -6,6 +7,7 @@ namespace Cards.Domain.Models
     public class Card
     {
         public Card(
+            Guid id,
             string englishWord,
             string[] russianTranslations,
             string[] usageExamples,
@@ -21,6 +23,8 @@ namespace Cards.Domain.Models
             YouGlishLink = youGlishLink;
         }
 
+        public readonly Guid Id;
+        
         public readonly string EnglishWord;
 
         public readonly string[] RussianTranslations;

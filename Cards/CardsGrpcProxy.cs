@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Cards.Grpc.Generated;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
 namespace Cards
@@ -19,12 +20,12 @@ namespace Cards
             Domain.Models.GetCardRequest request,
             Func<Domain.Models.GetCardRequest, GetCardRequest> requestToGrpc,
             Func<CardsService.CardsServiceClient, GetCardRequest, CancellationToken, AsyncUnaryCall<Card>> call,
-            Func<Card, Domain.Models.Card> responceToDomain,
+            Func<Card, Domain.Models.Card> responseToDomain,
             CancellationToken token)
         {
             var grpcRequest = requestToGrpc(request);
             var grpcResponse = await call(_grpcClient, grpcRequest, token);
-            return responceToDomain(grpcResponse);
+            return responseToDomain(grpcResponse);
         }
         
         internal async Task<Domain.Models.LoginResponse> Login(
@@ -43,12 +44,34 @@ namespace Cards
             Domain.Models.GetCardForReviewRequest getCardForReviewRequest,
             Func<Domain.Models.GetCardForReviewRequest, GetCardForReviewRequest> requestToGrpc,
             Func<CardsService.CardsServiceClient, GetCardForReviewRequest, CancellationToken, AsyncUnaryCall<Card>> call,
-            Func<Card, Domain.Models.Card> responceToDomain,
+            Func<Card, Domain.Models.Card> responseToDomain,
             CancellationToken token)
         {
             var grpcRequest = requestToGrpc(getCardForReviewRequest);
             var grpcResponse = await call(_grpcClient, grpcRequest, token);
-            return responceToDomain(grpcResponse);
+            return responseToDomain(grpcResponse);
+        }
+        
+        internal async Task<Domain.Models.GetKnownCardsResponse> GetKnownCards(
+            Domain.Models.GetKnownCardsRequest learnCardRequest,
+            Func<Domain.Models.GetKnownCardsRequest, GetKnownCardsRequest> requestToGrpc,
+            Func<CardsService.CardsServiceClient, GetKnownCardsRequest, CancellationToken, AsyncUnaryCall<GetKnownCardsResponse>> call,
+            Func<GetKnownCardsResponse, Domain.Models.GetKnownCardsResponse> responseToDomain,
+            CancellationToken token)
+        {
+            var grpcRequest = requestToGrpc(learnCardRequest);
+            var grpcResponse = await call(_grpcClient, grpcRequest, token);
+            return responseToDomain(grpcResponse);
+        }
+        
+        internal async Task LearnCard(
+            Domain.Models.LearnCardRequest learnCardRequest,
+            Func<Domain.Models.LearnCardRequest, LearnCardRequest> requestToGrpc,
+            Func<CardsService.CardsServiceClient, LearnCardRequest, CancellationToken, AsyncUnaryCall<Empty>> call,
+            CancellationToken token)
+        {
+            var grpcRequest = requestToGrpc(learnCardRequest);
+            await call(_grpcClient, grpcRequest, token);
         }
     }
 }

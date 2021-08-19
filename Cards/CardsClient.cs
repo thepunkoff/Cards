@@ -47,6 +47,25 @@ namespace Cards
                 token);
         }
 
+        public Task LearnCard(LearnCardRequest learnCardRequest, CancellationToken token = default)
+        {
+            return _cardsProxy.LearnCard(
+                learnCardRequest,
+                req => req.ToGrpc(),
+                (client, request, t) => client.LearnCardAsync(request, cancellationToken: t),
+                token);
+        }
+        
+        public Task<GetKnownCardsResponse> GetKnownCards(GetKnownCardsRequest getKnownCardsRequest, CancellationToken token = default)
+        {
+            return _cardsProxy.GetKnownCards(
+                getKnownCardsRequest,
+                req => req.ToGrpc(),
+                (client, request, t) => client.GetKnownCardsAsync(request, cancellationToken: t),
+                res => res.ToDomain(),
+                token);
+        }
+
         public void Dispose()
         {
             _channel.Dispose();

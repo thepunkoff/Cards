@@ -1,7 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Cards.Domain.Models;
-using Cards.IdentityManagement.Models;
 
 namespace Cards.Domain.Abstractions
 {
@@ -10,7 +10,8 @@ namespace Cards.Domain.Abstractions
         Task AddCard(Card card, CancellationToken token = default);
         
         Task<(bool Exists, Card? Card)> GetCard(string word, CancellationToken token = default);
+        Task<(bool Exists, Card? Card)> GetCard(Guid id, CancellationToken token = default);
 
-        Task<Card> GetAnyCardForIdentity(Identity identity, CancellationToken token = default);
+        Task<Card> GetAnyCardForUser(User user, CancellationToken token = default);
     }
 }

@@ -9,6 +9,7 @@ namespace Cards.Mongo.Models
         public const string CardsCollectionName = "cards";
 
         public CardDocument(
+            Guid id,
             string englishWord,
             string[] russianTranslations,
             string[] usageExamples,
@@ -16,7 +17,7 @@ namespace Cards.Mongo.Models
             string definition,
             string youGlishLink)
         {
-            Id = Guid.NewGuid();
+            Id = id;
             EnglishWord = englishWord;
             RussianTranslations = russianTranslations;
             UsageExamples = usageExamples;

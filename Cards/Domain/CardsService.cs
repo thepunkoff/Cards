@@ -11,8 +11,8 @@ using Cards.Configuration;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
 using Cards.Exceptions;
-using Cards.IdentityManagement;
 using Cards.Mongo;
+using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
 
 namespace Cards.Domain
@@ -22,14 +22,19 @@ namespace Cards.Domain
         private const string? TranslationUri = "https://api.au-syd.language-translator.watson.cloud.ibm.com/instances/fe9a7f5f-c00f-4453-862b-3092c93cef14/v3/translate?version=2018-05-01";
         private const string WordPattern = @"^[a-zA-Zа-яА-Я]*$";
 
-        private readonly IIdentityManager _identityManager;
+        private readonly IAuthorizationManager _authorizationManager;
+        private readonly IUsersRepository _usersRepository;
         private readonly ICardsRepository _cardsRepository;
         private readonly HttpClient _httpClient;
 
         public CardsService(CardsSeviceConfiguration config)
         {
-            _cardsRepository = new MongoDbCardsRepository(config.MongoConnectionString, config.MongoDatabaseName);
-            _identityManager = new InMemoryIdentityManager();
+            var mongoClient = new MongoClient(config.MongoConnectionString);
+            _cardsRepository = new MongoDbCardsRepository(mongoClient, config.MongoDatabaseName);
+
+            var usersManager = new MongoDbUsersManager(mongoClient, config.MongoDatabaseName);
+            _usersRepository = usersManager;
+            _authorizationManager = usersManager;
 
             _httpClient = new HttpClient();
             string apiKeyString = Convert.ToBase64String(Encoding.ASCII.GetBytes($"apikey:{config.IbmCloudToken}"));
@@ -38,20 +43,43 @@ namespace Cards.Domain
         
         public async Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default)
         {
-            var (ok, userToken) = await _identityManager.TryLogin(loginRequest.Username, loginRequest.Password);
+            var (ok, userToken) = await _authorizationManager.TryLogin(loginRequest.Username, loginRequest.Password);
             return new LoginResponse { Status = ok, UserToken = ok ? userToken! : string.Empty };
         }
 
         public async Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
         {
-            var (ok, identity) = await _identityManager.TryGetIdentity(getCardForReviewRequest.UserToken);
-
+            var (ok, user) = await _authorizationManager.IsUserLoggedIn(getCardForReviewRequest.UserToken);
             if (!ok)
-                throw new NotLoggedInException("User is not logged in.");
+                throw new LoginException("User is not logged in.");
 
-            return await _cardsRepository.GetAnyCardForIdentity(identity!.Value, token);
+            return await _cardsRepository.GetAnyCardForUser(user!, token);
         }
-        
+
+        public async Task<GetKnownCardsResponse> GetKnownCards(GetKnownCardsRequest learnCardRequest, CancellationToken token = default)
+        {
+            var (ok, user) = await _authorizationManager.IsUserLoggedIn(learnCardRequest.UserToken);
+            if (!ok)
+                throw new LoginException("User is not logged in.");
+
+            var knownCardsIds = await _usersRepository.GetKnownCardsIds(user!, token);
+
+            return new GetKnownCardsResponse { KnownCardsIds = knownCardsIds };
+        }
+
+        public async Task LearnCard(LearnCardRequest learnCardRequest, CancellationToken token = default)
+        {
+            var (ok, user) = await _authorizationManager.IsUserLoggedIn(learnCardRequest.UserToken);
+            if (!ok)
+                throw new LoginException("User is not logged in.");
+
+            var (exists, card) = await _cardsRepository.GetCard(learnCardRequest.CardId, token);
+            if (!exists)
+                throw new CardNotExistException($"Card with id {learnCardRequest.CardId} doesn't exist.");
+
+            await _usersRepository.LearnCard(user!, card!, token);
+        }
+
         public async Task<Card> GetCard(GetCardRequest getCardRequest, CancellationToken token)
         {
             var word = getCardRequest.Word;
@@ -68,7 +96,7 @@ namespace Cards.Domain
             var etymology = await GetEtymology(word, token);
             var youGlishLink = GetYouGlishLink(word);
             
-            card = new Card(word.ToLowerInvariant(), translations, usageExamples, etymology, definition, youGlishLink);
+            card = new Card(Guid.NewGuid(), word.ToLowerInvariant(), translations, usageExamples, etymology, definition, youGlishLink);
             
             await _cardsRepository.AddCard(card, token);
 
