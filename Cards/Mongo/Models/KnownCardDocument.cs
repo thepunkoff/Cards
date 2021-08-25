@@ -12,7 +12,7 @@ namespace Cards.Mongo.Models
             Repetitions = 0;
             EasinessFactor = 2.5f;
             Interval = 1;
-            NextReviewDate = learningDate.AddDays(Interval);
+            NextReviewDate = learningDate.AddDays(Interval).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         }
         
         public KnownCardDocument(Guid id, int repetitions, float easinessFactor, int interval, DateOnly nextReviewDate)
@@ -21,7 +21,7 @@ namespace Cards.Mongo.Models
             Repetitions = repetitions;
             EasinessFactor = easinessFactor;
             Interval = interval;
-            NextReviewDate = nextReviewDate;
+            NextReviewDate = nextReviewDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
         }
 
         [BsonId]
@@ -38,6 +38,7 @@ namespace Cards.Mongo.Models
         public int Interval { get; set; }
         
         [BsonElement("nextReviewDate")]
-        public DateOnly NextReviewDate { get; set; }
+        [BsonDateTimeOptions(DateOnly = true)]
+        public DateTime NextReviewDate { get; set; }
     }
 }

@@ -28,7 +28,7 @@ namespace Cards
             {
                 CardId = domainReviewCardRequest.CardId.ToString(),
                 UserToken = domainReviewCardRequest.UserToken,
-                ReviewDate = Timestamp.FromDateTime(domainReviewCardRequest.ReviewDate.ToDateTime(TimeOnly.MinValue)),
+                ReviewDate = Timestamp.FromDateTime(domainReviewCardRequest.ReviewDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)),
                 Grade = domainReviewCardRequest.Grade
             };
         }
@@ -294,7 +294,7 @@ namespace Cards
                 domainKnownCard.Repetitions,
                 domainKnownCard.EasinessFactor,
                 domainKnownCard.Interval,
-                domainKnownCard.NextReviewDate);
+                DateOnly.FromDateTime(domainKnownCard.NextReviewDate));
         }
         
         public static KnownCardDocument ToMongo(this KnownCard domainKnownCard)

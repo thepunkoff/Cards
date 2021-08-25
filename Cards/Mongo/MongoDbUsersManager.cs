@@ -142,7 +142,7 @@ namespace Cards.Mongo
             }
             
             var mongoUser = userCursor.Current.Single();
-            var cardToReview = mongoUser.KnownCards.FirstOrDefault(x => x.NextReviewDate == requestDate);
+            var cardToReview = mongoUser.KnownCards.FirstOrDefault(x => x.NextReviewDate == requestDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
             return cardToReview?.Id;
         }
 
@@ -158,17 +158,18 @@ namespace Cards.Mongo
 
         public async Task SaveReviewedCard(User user, KnownCard newKnownCard, CancellationToken token = default)
         {
-            var update = Builders<UserDocument>.Update.Set("knownCards.$[c]", newKnownCard.ToMongo());
+            var update = Builders<UserDocument>.Update.Set("knownCards.$[card]", newKnownCard.ToMongo());
             var updateOptions = new UpdateOptions
             {
                 ArrayFilters = new[]
                 {
                     new BsonDocumentArrayFilterDefinition<UserDocument>(
-                        new BsonDocument("c.CardId", new BsonDocument("$eq", new BsonString(newKnownCard.Id.ToString())))),
+                        new BsonDocument("card._id", new BsonDocument("$eq", new BsonString(newKnownCard.Id.ToString())))),
                 }
             };
 
-            await _rawUsersCollection.UpdateOneAsync(x => x.Id == user.Id, update, updateOptions, token);
+            // TODO: проверять все что можно
+            var res = await _rawUsersCollection.UpdateOneAsync(x => x.Id == user.Id, update, updateOptions, token);
         }
 
         private async Task<UserDocument?> GetSingleUserFromDatabase<TField>(Expression<Func<UserDocument, TField>> field, TField value, bool soft, CancellationToken token = default)

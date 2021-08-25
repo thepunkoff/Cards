@@ -7,6 +7,8 @@ using Cards.Configuration;
 using Cards.Grpc;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using CardsService = Cards.Grpc.Generated.CardsService;
 
 namespace Cards

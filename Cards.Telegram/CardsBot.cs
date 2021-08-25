@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -32,6 +33,9 @@ namespace Cards.Telegram
             {
                 try
                 {
+                    if (args.CallbackQuery.Data == string.Empty)
+                        return;
+
                     if (!args.CallbackQuery.Data.StartsWith('/'))
                         throw new InvalidOperationException("Callback query data should be a command.");
 
@@ -181,7 +185,10 @@ namespace Cards.Telegram
 
             var response = await _cardsClient.GetCardForReview(new GetCardForReviewRequest {UserToken = userToken});
             if (response.NothingToReview)
-                await _botClient.SendTextMessageAsync(chatId, "Сегодня больше нечего повторять.");    
+            {
+                await _botClient.SendTextMessageAsync(chatId, "Сегодня больше нечего повторять.");
+                return;
+            }
             
             var wordSummary = response.Card!.ToTelegramMarkdownString();
 
@@ -210,12 +217,15 @@ namespace Cards.Telegram
             
             var cardId = Guid.Parse(args[0]);
             var grade = int.Parse(args[1]);
+            var requestDate = args.Length == 3
+                ? DateTime.ParseExact(args[2], "dd-MM-yyyy", CultureInfo.InvariantCulture)
+                : DateTime.Today;
 
             await _cardsClient.ReviewCard(new ReviewCardRequest
             {
                 CardId = cardId,
                 Grade = grade,
-                ReviewDate = DateOnly.FromDateTime(DateTime.Today),
+                ReviewDate = DateOnly.FromDateTime(requestDate),
                 UserToken = userToken
             });
             
