@@ -103,6 +103,9 @@ namespace Cards.Telegram
                 case "/review":
                     await ProcessReviewCommand(chatId, split[1..]);
                     break;
+                case "/reviewed":
+                    await ProcessReviewedCommand(chatId, messageId, split[1..]);
+                    break;
                 case "/learn":
                     await ProcessLearnCommand(chatId, messageId, split[1..], false);
                     break;
@@ -176,9 +179,57 @@ namespace Cards.Telegram
 
             var (_, userToken) = _authorizedUsers[chatId];
 
-            var card = await _cardsClient.GetCardForReview(new GetCardForReviewRequest {UserToken = userToken});
-            var wordSummary = card.ToTelegramMarkdownString();
-            await _botClient.SendTextMessageAsync(chatId, wordSummary, parseMode: ParseMode.Markdown);
+            var response = await _cardsClient.GetCardForReview(new GetCardForReviewRequest {UserToken = userToken});
+            if (response.NothingToReview)
+                await _botClient.SendTextMessageAsync(chatId, "Сегодня больше нечего повторять.");    
+            
+            var wordSummary = response.Card!.ToTelegramMarkdownString();
+
+            var gradesKeyboard = new InlineKeyboardMarkup(
+                new[]
+                {
+                    new InlineKeyboardButton("Fail", $"/reviewed {response.Card.Id.ToString()} 1"),
+                    new InlineKeyboardButton("Hard", $"/reviewed {response.Card.Id.ToString()} 2"),
+                    new InlineKeyboardButton("Medium", $"/reviewed {response.Card.Id.ToString()} 3"),
+                    new InlineKeyboardButton("Good", $"/reviewed {response.Card.Id.ToString()} 4"),
+                    new InlineKeyboardButton("Perfect", $"/reviewed {response.Card.Id.ToString()} 5"),
+                });
+            
+            await _botClient.SendTextMessageAsync(chatId, wordSummary, parseMode: ParseMode.Markdown, replyMarkup: gradesKeyboard);
+        }
+        
+        private async Task ProcessReviewedCommand(long chatId, int messageId, string[] args)
+        {
+            if (!_authorizedUsers.ContainsKey(chatId))
+            {
+                await _botClient.SendTextMessageAsync(chatId, "Вы не авторизованы в системе.");
+                return;
+            }
+
+            var (_, userToken) = _authorizedUsers[chatId];
+            
+            var cardId = Guid.Parse(args[0]);
+            var grade = int.Parse(args[1]);
+
+            await _cardsClient.ReviewCard(new ReviewCardRequest
+            {
+                CardId = cardId,
+                Grade = grade,
+                ReviewDate = DateOnly.FromDateTime(DateTime.Today),
+                UserToken = userToken
+            });
+            
+            var gradesKeyboard = new InlineKeyboardMarkup(
+                new[]
+                {
+                    new InlineKeyboardButton($"{(grade == 1 ? "[Fail]" : "Fail")}"),
+                    new InlineKeyboardButton($"{(grade == 2 ? "[Hard]" : "Hard")}"),
+                    new InlineKeyboardButton($"{(grade == 3 ? "[Medium]" : "Medium")}"),
+                    new InlineKeyboardButton($"{(grade == 4 ? "[Good]" : "Good")}"),
+                    new InlineKeyboardButton($"{(grade == 5 ? "[Perfect]" : "Perfect")}"),
+                });
+
+            await _botClient.EditMessageReplyMarkupAsync(chatId, messageId, gradesKeyboard);
         }
         
         public void Dispose()

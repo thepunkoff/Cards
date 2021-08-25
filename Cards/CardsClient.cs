@@ -37,7 +37,7 @@ namespace Cards
                 token);
         }
 
-        public Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
+        public Task<GetCardForReviewResponse> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
         {
             return _cardsProxy.GetCardForReview(
                 getCardForReviewRequest,

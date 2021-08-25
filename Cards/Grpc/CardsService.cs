@@ -3,9 +3,18 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Cards.Configuration;
-using Cards.Grpc.Generated;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Card = Cards.Grpc.Generated.Card;
+using GetCardForReviewRequest = Cards.Grpc.Generated.GetCardForReviewRequest;
+using GetCardForReviewResponse = Cards.Grpc.Generated.GetCardForReviewResponse;
+using GetCardRequest = Cards.Grpc.Generated.GetCardRequest;
+using GetKnownCardsRequest = Cards.Grpc.Generated.GetKnownCardsRequest;
+using GetKnownCardsResponse = Cards.Grpc.Generated.GetKnownCardsResponse;
+using LearnCardRequest = Cards.Grpc.Generated.LearnCardRequest;
+using LoginRequest = Cards.Grpc.Generated.LoginRequest;
+using LoginResponse = Cards.Grpc.Generated.LoginResponse;
+using ReviewCardRequest = Cards.Grpc.Generated.ReviewCardRequest;
 
 namespace Cards.Grpc
 {
@@ -47,12 +56,12 @@ namespace Cards.Grpc
             }
         }
         
-        public override async Task<Card> GetCardForReview(GetCardForReviewRequest request, ServerCallContext context)
+        public override async Task<GetCardForReviewResponse> GetCardForReview(GetCardForReviewRequest request, ServerCallContext context)
         {
             try
             {
-                var domainCard = await _domainService.GetCardForReview(request.ToDomain(), context.CancellationToken);
-                return domainCard.ToGrpc();
+                var getCardForReviewResponse = await _domainService.GetCardForReview(request.ToDomain(), context.CancellationToken);
+                return getCardForReviewResponse.ToGrpc();
             }
             catch (Exception ex)
             {

@@ -25,6 +25,26 @@ namespace Cards.Grpc
             {
                 throw new RpcException(new Status(StatusCode.Unavailable, mongoUnavailableException.ToString()));
             }
+            catch (CardNotExistException cardNotExistException)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, cardNotExistException.ToString()));
+            }
+            catch (CardNotKnownException cardNotKnownException)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, cardNotKnownException.ToString()));
+            }
+            catch (InvalidInputException invalidInputException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, invalidInputException.ToString()));
+            }
+            catch (LoginException loginException)
+            {
+                throw new RpcException(new Status(StatusCode.Unauthenticated, loginException.ToString()));
+            }
+            catch (TooManyReviewsException tooManyReviewsException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, tooManyReviewsException.ToString()));
+            }
             catch (Exception exception)
             {
                 throw new RpcException(new Status(StatusCode.Unknown, exception.ToString()));

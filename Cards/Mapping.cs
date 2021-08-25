@@ -5,6 +5,7 @@ using Cards.Mongo.Models;
 using Google.Protobuf.WellKnownTypes;
 using Card = Cards.Domain.Models.Card;
 using GetCardForReviewRequest = Cards.Grpc.Generated.GetCardForReviewRequest;
+using GetCardForReviewResponse = Cards.Grpc.Generated.GetCardForReviewResponse;
 using GetCardRequest = Cards.Grpc.Generated.GetCardRequest;
 using GetKnownCardsRequest = Cards.Grpc.Generated.GetKnownCardsRequest;
 using ReviewCardRequest = Cards.Grpc.Generated.ReviewCardRequest;
@@ -219,6 +220,28 @@ namespace Cards
             _ = domainGetCardForReviewRequest ?? throw new ArgumentNullException(nameof(domainGetCardForReviewRequest));
             
             return new GetCardForReviewRequest { UserToken = domainGetCardForReviewRequest.UserToken };
+        }
+        
+        public static Domain.Models.GetCardForReviewResponse ToDomain(this GetCardForReviewResponse grpcGetCardForReviewResponse)
+        {
+            _ = grpcGetCardForReviewResponse ?? throw new ArgumentNullException(nameof(grpcGetCardForReviewResponse));
+            
+            return new Domain.Models.GetCardForReviewResponse
+            {
+                NothingToReview = grpcGetCardForReviewResponse.NothingToReview,
+                Card = grpcGetCardForReviewResponse.Card.ToDomain()
+            };
+        }
+        
+        public static GetCardForReviewResponse ToGrpc(this Domain.Models.GetCardForReviewResponse domainGetCardForReviewResponse)
+        {
+            _ = domainGetCardForReviewResponse ?? throw new ArgumentNullException(nameof(domainGetCardForReviewResponse));
+            
+            return new GetCardForReviewResponse
+            {
+                NothingToReview = domainGetCardForReviewResponse.NothingToReview,
+                Card = domainGetCardForReviewResponse.Card?.ToGrpc() ?? Card.Default.ToGrpc()
+            };
         }
 
         #endregion

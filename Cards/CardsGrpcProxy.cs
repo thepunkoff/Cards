@@ -40,11 +40,11 @@ namespace Cards
             return responseToDomain(grpcResponse);
         }
         
-        internal async Task<Domain.Models.Card> GetCardForReview(
+        internal async Task<Domain.Models.GetCardForReviewResponse> GetCardForReview(
             Domain.Models.GetCardForReviewRequest getCardForReviewRequest,
             Func<Domain.Models.GetCardForReviewRequest, GetCardForReviewRequest> requestToGrpc,
-            Func<CardsService.CardsServiceClient, GetCardForReviewRequest, CancellationToken, AsyncUnaryCall<Card>> call,
-            Func<Card, Domain.Models.Card> responseToDomain,
+            Func<CardsService.CardsServiceClient, GetCardForReviewRequest, CancellationToken, AsyncUnaryCall<GetCardForReviewResponse>> call,
+            Func<GetCardForReviewResponse, Domain.Models.GetCardForReviewResponse> responseToDomain,
             CancellationToken token)
         {
             var grpcRequest = requestToGrpc(getCardForReviewRequest);

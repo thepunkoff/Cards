@@ -14,7 +14,7 @@ service CardsService {
   rpc Login(LoginRequest) returns (LoginResponse);
   
   // Получить следующую карточку для ревью.
-  rpc GetCardForReview(GetCardForReviewRequest) returns (Card);
+  rpc GetCardForReview(GetCardForReviewRequest) returns (GetCardForReviewResponse);
 
   // Отправить отработанную карточку.
   rpc ReviewCard(ReviewCardRequest) returns (google.protobuf.Empty);
@@ -55,6 +55,12 @@ message GetCardRequest {
 message GetCardForReviewRequest {
   string UserToken = 1;
 }
+
+message GetCardForReviewResponse {
+  bool NothingToReview = 1;
+  Card Card = 2;
+}
+
 
 message LoginRequest {
   string Username = 1;

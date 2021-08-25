@@ -6,6 +6,15 @@ namespace Cards.Domain.Models
 {
     public class Card
     {
+        public static Card Default => new(
+            Guid.Empty,
+            string.Empty,
+            Array.Empty<string>(),
+            Array.Empty<string>(),
+            string.Empty,
+            string.Empty,
+            string.Empty);
+
         public Card(
             Guid id,
             string englishWord,

@@ -107,8 +107,8 @@ namespace Cards.Mongo
 
         public async Task<KnownCard> GetKnownCard(User user, Guid cardId, CancellationToken token = default)
         {
-            // TODO: брать одним запросом только то, что нужно
-            var filter = new FilterDefinitionBuilder<UserDocument>().Eq(x => x.Username, user.Username);
+            // TODO: брать одним запросом только то, что нужно, если это возможно
+            var filter = new FilterDefinitionBuilder<UserDocument>().Eq(x => x.Id, user.Id);
             var userCursor = await _rawUsersCollection.FindAsync(filter, cancellationToken: token);
             await userCursor.MoveNextAsync(token);
             switch (userCursor.Current.Count())
@@ -125,6 +125,25 @@ namespace Cards.Mongo
                 throw new CardNotExistException($"Card with id '{cardId}' is not know by user with username '{user.Username}'");
 
             return cardToReview.ToDomain();
+        }
+
+        public async Task<Guid?> GetCardForReviewId(User user, DateOnly requestDate, CancellationToken token = default)
+        {
+            // TODO: брать одним запросом только то, что нужно, если это возможно
+            var filter = new FilterDefinitionBuilder<UserDocument>().Eq(x => x.Id, user.Id);
+            var userCursor = await _rawUsersCollection.FindAsync(filter, cancellationToken: token);
+            await userCursor.MoveNextAsync(token);
+            switch (userCursor.Current.Count())
+            {
+                case 0:
+                    throw new Exception($"Find: No user with name '{user.Username}' was found in database.");
+                case > 1:
+                    throw new Exception($"Find: Multiple users with name '{user.Username}' were found in database.");
+            }
+            
+            var mongoUser = userCursor.Current.Single();
+            var cardToReview = mongoUser.KnownCards.FirstOrDefault(x => x.NextReviewDate == requestDate);
+            return cardToReview?.Id;
         }
 
         public async Task LearnCard(User user, Card card, DateOnly learningDate, CancellationToken token = default)

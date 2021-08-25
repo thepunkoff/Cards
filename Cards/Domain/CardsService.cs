@@ -48,13 +48,32 @@ namespace Cards.Domain
             return new LoginResponse { Status = ok, UserToken = userToken ?? string.Empty };
         }
 
-        public async Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
+        public async Task<GetCardForReviewResponse> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
         {
             var (ok, user) = await _authorizationManager.IsUserLoggedIn(getCardForReviewRequest.UserToken, token);
             if (!ok)
                 throw new LoginException("User is not logged in.");
 
-            return await _cardsRepository.GetAnyCardForUser(user!, token);
+            var cardForReviewId = await _usersRepository.GetCardForReviewId(user!, DateOnly.FromDateTime(DateTime.Today), token);
+
+            if (cardForReviewId is null)
+            {
+                return new GetCardForReviewResponse
+                {
+                    NothingToReview = true,
+                    Card = null
+                };
+            }
+            
+            var (exists, card) = await _cardsRepository.GetCard(cardForReviewId.Value, token);
+            if (!exists)
+                throw new CardNotExistException($"Card with id {cardForReviewId} doesn't exist.");
+
+            return new GetCardForReviewResponse
+            {
+                NothingToReview = false,
+                Card = card
+            };
         }
 
         public async Task ReviewCard(ReviewCardRequest reviewCardRequest, CancellationToken token = default)
@@ -64,6 +83,9 @@ namespace Cards.Domain
                 throw new LoginException("User is not logged in.");
             
             var card = await _usersRepository.GetKnownCard(user!, reviewCardRequest.CardId, token);
+
+            if (card.NextReviewDate > reviewCardRequest.ReviewDate)
+                throw new TooManyReviewsException($"Detected multiple reviews per day for card '{card.Id}'");
 
             var reviewedCard = SuperMemo2.ReviewCard(card, reviewCardRequest.Grade);
 

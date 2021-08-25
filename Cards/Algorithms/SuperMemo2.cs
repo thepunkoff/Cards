@@ -14,11 +14,10 @@ namespace Cards.Algorithms
             var easiness = card.EasinessFactor;
             var interval = card.Interval;
 
-            if (grade < 3) {
+            if (grade < 3)
                 repetitions = 0;
-            } else {
+            else
                 repetitions += 1;
-            }
 
             easiness = (float) Math.Max(1.3, easiness + 0.1 - (5.0 - grade) * (0.08 + (5.0 - grade) * 0.02));
 
