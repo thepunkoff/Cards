@@ -58,6 +58,7 @@ namespace Cards.Telegram
                         return;
                     }
                     
+                    // TODO: cache?
                     var card = await _cardsClient.GetCard(new GetCardRequest { Word = args.Message.Text });
 
                     InlineKeyboardMarkup? keyboard = null;
@@ -106,6 +107,9 @@ namespace Cards.Telegram
                     break;
                 case "/review":
                     await ProcessReviewCommand(chatId, split[1..]);
+                    break;
+                case "/flip":
+                    await ProcessFlipCommand(chatId, messageId, split[1..]);
                     break;
                 case "/reviewed":
                     await ProcessReviewedCommand(chatId, messageId, split[1..]);
@@ -183,26 +187,33 @@ namespace Cards.Telegram
 
             var (_, userToken) = _authorizedUsers[chatId];
 
-            var response = await _cardsClient.GetCardForReview(new GetCardForReviewRequest {UserToken = userToken});
+            var reviewDate = args.Length == 1
+                ? DateTime.ParseExact(args[0], "dd-MM-yyyy", CultureInfo.InvariantCulture)
+                : DateTime.Today;
+            
+            // TODO: cache?
+            var response = await _cardsClient.GetCardForReview(new GetCardForReviewRequest
+            {
+                UserToken = userToken,
+                ReviewDate = DateOnly.FromDateTime(reviewDate)
+            });
+
             if (response.NothingToReview)
             {
                 await _botClient.SendTextMessageAsync(chatId, "Сегодня больше нечего повторять.");
                 return;
             }
             
-            var wordSummary = response.Card!.ToTelegramMarkdownString();
+            var sideOne = response.Card!.EnglishWord;
 
-            var gradesKeyboard = new InlineKeyboardMarkup(
+            var reviewDateArg = args.Length == 1 ? " " + args[0] : string.Empty;
+            var flipKeyboard = new InlineKeyboardMarkup(
                 new[]
                 {
-                    new InlineKeyboardButton("Fail", $"/reviewed {response.Card.Id.ToString()} 1"),
-                    new InlineKeyboardButton("Hard", $"/reviewed {response.Card.Id.ToString()} 2"),
-                    new InlineKeyboardButton("Medium", $"/reviewed {response.Card.Id.ToString()} 3"),
-                    new InlineKeyboardButton("Good", $"/reviewed {response.Card.Id.ToString()} 4"),
-                    new InlineKeyboardButton("Perfect", $"/reviewed {response.Card.Id.ToString()} 5"),
+                    new InlineKeyboardButton("Flip", $"/flip {response.Card!.Id} {response.Card!.EnglishWord}{reviewDateArg}"),
                 });
             
-            await _botClient.SendTextMessageAsync(chatId, wordSummary, parseMode: ParseMode.Markdown, replyMarkup: gradesKeyboard);
+            await _botClient.SendTextMessageAsync(chatId, sideOne, replyMarkup: flipKeyboard);
         }
         
         private async Task ProcessReviewedCommand(long chatId, int messageId, string[] args)
@@ -217,7 +228,7 @@ namespace Cards.Telegram
             
             var cardId = Guid.Parse(args[0]);
             var grade = int.Parse(args[1]);
-            var requestDate = args.Length == 3
+            var reviewDate = args.Length == 3
                 ? DateTime.ParseExact(args[2], "dd-MM-yyyy", CultureInfo.InvariantCulture)
                 : DateTime.Today;
 
@@ -225,7 +236,7 @@ namespace Cards.Telegram
             {
                 CardId = cardId,
                 Grade = grade,
-                ReviewDate = DateOnly.FromDateTime(requestDate),
+                ReviewDate = DateOnly.FromDateTime(reviewDate),
                 UserToken = userToken
             });
             
@@ -237,6 +248,30 @@ namespace Cards.Telegram
                     new InlineKeyboardButton($"{(grade == 3 ? "[Medium]" : "Medium")}"),
                     new InlineKeyboardButton($"{(grade == 4 ? "[Good]" : "Good")}"),
                     new InlineKeyboardButton($"{(grade == 5 ? "[Perfect]" : "Perfect")}"),
+                });
+
+            await _botClient.EditMessageReplyMarkupAsync(chatId, messageId, gradesKeyboard);
+        }
+        
+        private async Task ProcessFlipCommand(long chatId, int messageId, string[] args)
+        {
+            var cardId = args[0];
+            var word = args[1];
+            var reviewDateArg = args.Length == 3 ? " " + args[2] : string.Empty;
+            
+            // TODO: get card by id
+            var card = await _cardsClient.GetCard(new GetCardRequest { Word = word});
+            var wordSummary = card.ToTelegramMarkdownString();
+            await _botClient.EditMessageTextAsync(chatId, messageId, wordSummary, ParseMode.Markdown);
+            
+            var gradesKeyboard = new InlineKeyboardMarkup(
+                new[]
+                {
+                    new InlineKeyboardButton("Fail", $"/reviewed {cardId} 1{reviewDateArg}"),
+                    new InlineKeyboardButton("Hard", $"/reviewed {cardId} 2{reviewDateArg}"),
+                    new InlineKeyboardButton("Medium", $"/reviewed {cardId} 3{reviewDateArg}"),
+                    new InlineKeyboardButton("Good", $"/reviewed {cardId} 4{reviewDateArg}"),
+                    new InlineKeyboardButton("Perfect", $"/reviewed {cardId} 5{reviewDateArg}"),
                 });
 
             await _botClient.EditMessageReplyMarkupAsync(chatId, messageId, gradesKeyboard);

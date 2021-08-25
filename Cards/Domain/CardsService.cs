@@ -54,7 +54,7 @@ namespace Cards.Domain
             if (!ok)
                 throw new LoginException("User is not logged in.");
 
-            var cardForReviewId = await _usersRepository.GetCardForReviewId(user!, DateOnly.FromDateTime(DateTime.Today), token);
+            var cardForReviewId = await _usersRepository.GetCardForReviewId(user!, getCardForReviewRequest.ReviewDate, token);
 
             if (cardForReviewId is null)
             {

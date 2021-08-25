@@ -212,14 +212,22 @@ namespace Cards
         {
             _ = grpcGetCardForReviewRequest ?? throw new ArgumentNullException(nameof(grpcGetCardForReviewRequest));
             
-            return new Domain.Models.GetCardForReviewRequest { UserToken = grpcGetCardForReviewRequest.UserToken };
+            return new Domain.Models.GetCardForReviewRequest
+            {
+                UserToken = grpcGetCardForReviewRequest.UserToken,
+                ReviewDate = DateOnly.FromDateTime(grpcGetCardForReviewRequest.ReviewDate.ToDateTime()),
+            };
         }
         
         public static GetCardForReviewRequest ToGrpc(this Domain.Models.GetCardForReviewRequest domainGetCardForReviewRequest)
         {
             _ = domainGetCardForReviewRequest ?? throw new ArgumentNullException(nameof(domainGetCardForReviewRequest));
             
-            return new GetCardForReviewRequest { UserToken = domainGetCardForReviewRequest.UserToken };
+            return new GetCardForReviewRequest
+            {
+                UserToken = domainGetCardForReviewRequest.UserToken,
+                ReviewDate = Timestamp.FromDateTime(domainGetCardForReviewRequest.ReviewDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc))
+            };
         }
         
         public static Domain.Models.GetCardForReviewResponse ToDomain(this GetCardForReviewResponse grpcGetCardForReviewResponse)

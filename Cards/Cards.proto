@@ -54,6 +54,7 @@ message GetCardRequest {
 
 message GetCardForReviewRequest {
   string UserToken = 1;
+  google.protobuf.Timestamp ReviewDate = 2;
 }
 
 message GetCardForReviewResponse {
