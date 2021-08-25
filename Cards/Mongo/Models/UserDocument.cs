@@ -11,23 +11,29 @@ namespace Cards.Mongo.Models
         public UserDocument(
             string username,
             byte[] passwordHash,
-            KnownCardDocument[] knownCards)
+            string? loggedInToken = null,
+            KnownCardDocument[]? knownCards = null)
         {
             Id = Guid.NewGuid();
             Username = username;
             PasswordHash = passwordHash;
-            KnownCards = knownCards;
+            LoggedInToken = loggedInToken;
+            KnownCards = knownCards ?? Array.Empty<KnownCardDocument>();
         }
 
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public Guid Id;
+        public Guid Id { get; set; }
         
         [BsonElement("username")]
         public string Username { get; set; }
         
         [BsonElement("passwordHash")]
         public byte[] PasswordHash { get; set; }
+        
+        [BsonElement("loggedInToken")]
+        [BsonIgnoreIfNull]
+        public string? LoggedInToken { get; set; }
         
         [BsonElement("knownCards")]
         public KnownCardDocument[] KnownCards { get; set; }

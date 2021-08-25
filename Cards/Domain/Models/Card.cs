@@ -15,6 +15,7 @@ namespace Cards.Domain.Models
             string definition,
             string youGlishLink)
         {
+            Id = id;
             EnglishWord = englishWord;
             RussianTranslations = russianTranslations;
             UsageExamples = usageExamples;

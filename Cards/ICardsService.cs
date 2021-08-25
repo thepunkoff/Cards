@@ -11,8 +11,10 @@ namespace Cards
         Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default);
         
         Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default);
+        
+        Task ReviewCard(ReviewCardRequest reviewCardRequest, CancellationToken token = default);
 
-        Task<GetKnownCardsResponse> GetKnownCards(GetKnownCardsRequest learnCardRequest, CancellationToken token = default);
+        Task<GetKnownCardsResponse> GetKnownCards(GetKnownCardsRequest getKnownCardsRequest, CancellationToken token = default);
         
         Task LearnCard(LearnCardRequest learnCardRequest, CancellationToken token = default);
     }

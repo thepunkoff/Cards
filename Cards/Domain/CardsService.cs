@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Html.Dom;
+using Cards.Algorithms;
 using Cards.Configuration;
 using Cards.Domain.Abstractions;
 using Cards.Domain.Models;
@@ -40,25 +41,38 @@ namespace Cards.Domain
             string apiKeyString = Convert.ToBase64String(Encoding.ASCII.GetBytes($"apikey:{config.IbmCloudToken}"));
             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {apiKeyString}");
         }
-        
+
         public async Task<LoginResponse> Login(LoginRequest loginRequest, CancellationToken token = default)
         {
-            var (ok, userToken) = await _authorizationManager.TryLogin(loginRequest.Username, loginRequest.Password);
-            return new LoginResponse { Status = ok, UserToken = ok ? userToken! : string.Empty };
+            var (ok, userToken) = await _authorizationManager.Login(loginRequest.Username, loginRequest.Password, token);
+            return new LoginResponse { Status = ok, UserToken = userToken ?? string.Empty };
         }
 
         public async Task<Card> GetCardForReview(GetCardForReviewRequest getCardForReviewRequest, CancellationToken token = default)
         {
-            var (ok, user) = await _authorizationManager.IsUserLoggedIn(getCardForReviewRequest.UserToken);
+            var (ok, user) = await _authorizationManager.IsUserLoggedIn(getCardForReviewRequest.UserToken, token);
             if (!ok)
                 throw new LoginException("User is not logged in.");
 
             return await _cardsRepository.GetAnyCardForUser(user!, token);
         }
 
-        public async Task<GetKnownCardsResponse> GetKnownCards(GetKnownCardsRequest learnCardRequest, CancellationToken token = default)
+        public async Task ReviewCard(ReviewCardRequest reviewCardRequest, CancellationToken token = default)
         {
-            var (ok, user) = await _authorizationManager.IsUserLoggedIn(learnCardRequest.UserToken);
+            var (ok, user) = await _authorizationManager.IsUserLoggedIn(reviewCardRequest.UserToken, token);
+            if (!ok)
+                throw new LoginException("User is not logged in.");
+            
+            var card = await _usersRepository.GetKnownCard(user!, reviewCardRequest.CardId, token);
+
+            var reviewedCard = SuperMemo2.ReviewCard(card, reviewCardRequest.Grade);
+
+            await _usersRepository.SaveReviewedCard(user!, reviewedCard, token);
+        }
+
+        public async Task<GetKnownCardsResponse> GetKnownCards(GetKnownCardsRequest getKnownCardsRequest, CancellationToken token = default)
+        {
+            var (ok, user) = await _authorizationManager.IsUserLoggedIn(getKnownCardsRequest.UserToken, token);
             if (!ok)
                 throw new LoginException("User is not logged in.");
 
@@ -69,15 +83,18 @@ namespace Cards.Domain
 
         public async Task LearnCard(LearnCardRequest learnCardRequest, CancellationToken token = default)
         {
-            var (ok, user) = await _authorizationManager.IsUserLoggedIn(learnCardRequest.UserToken);
+            var (ok, user) = await _authorizationManager.IsUserLoggedIn(learnCardRequest.UserToken, token);
             if (!ok)
                 throw new LoginException("User is not logged in.");
 
             var (exists, card) = await _cardsRepository.GetCard(learnCardRequest.CardId, token);
             if (!exists)
                 throw new CardNotExistException($"Card with id {learnCardRequest.CardId} doesn't exist.");
-
-            await _usersRepository.LearnCard(user!, card!, token);
+            
+            if (learnCardRequest.Forget)
+                await _usersRepository.ForgetCard(user!, card!, token);
+            else
+                await _usersRepository.LearnCard(user!, card!, DateOnly.FromDateTime(DateTime.Today), token);
         }
 
         public async Task<Card> GetCard(GetCardRequest getCardRequest, CancellationToken token)

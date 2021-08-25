@@ -1,8 +1,17 @@
 ﻿using System;
 using System.Linq;
-using Cards.Grpc.Generated;
+using Cards.Domain.Models;
 using Cards.Mongo.Models;
+using Google.Protobuf.WellKnownTypes;
 using Card = Cards.Domain.Models.Card;
+using GetCardForReviewRequest = Cards.Grpc.Generated.GetCardForReviewRequest;
+using GetCardRequest = Cards.Grpc.Generated.GetCardRequest;
+using GetKnownCardsRequest = Cards.Grpc.Generated.GetKnownCardsRequest;
+using ReviewCardRequest = Cards.Grpc.Generated.ReviewCardRequest;
+using GetKnownCardsResponse = Cards.Grpc.Generated.GetKnownCardsResponse;
+using LearnCardRequest = Cards.Grpc.Generated.LearnCardRequest;
+using LoginRequest = Cards.Grpc.Generated.LoginRequest;
+using LoginResponse = Cards.Grpc.Generated.LoginResponse;
 
 namespace Cards
 {
@@ -10,6 +19,32 @@ namespace Cards
     {
         #region Grpc
 
+        public static ReviewCardRequest ToGrpc(this Domain.Models.ReviewCardRequest domainReviewCardRequest)
+        {
+            _ = domainReviewCardRequest ?? throw new ArgumentNullException(nameof(domainReviewCardRequest));
+            
+            return new ReviewCardRequest
+            {
+                CardId = domainReviewCardRequest.CardId.ToString(),
+                UserToken = domainReviewCardRequest.UserToken,
+                ReviewDate = Timestamp.FromDateTime(domainReviewCardRequest.ReviewDate.ToDateTime(TimeOnly.MinValue)),
+                Grade = domainReviewCardRequest.Grade
+            };
+        }
+        
+        public static Domain.Models.ReviewCardRequest ToDomain(this ReviewCardRequest grpcReviewCardRequest)
+        {
+            _ = grpcReviewCardRequest ?? throw new ArgumentNullException(nameof(grpcReviewCardRequest));
+            
+            return new Domain.Models.ReviewCardRequest
+            {
+                CardId = Guid.Parse(grpcReviewCardRequest.CardId),
+                UserToken = grpcReviewCardRequest.UserToken,
+                ReviewDate = DateOnly.FromDateTime(grpcReviewCardRequest.ReviewDate.ToDateTime()),
+                Grade = grpcReviewCardRequest.Grade
+            };
+        }
+        
         public static GetKnownCardsRequest ToGrpc(this Domain.Models.GetKnownCardsRequest domainGetKnownCardsRequest)
         {
             _ = domainGetKnownCardsRequest ?? throw new ArgumentNullException(nameof(domainGetKnownCardsRequest));
@@ -56,7 +91,8 @@ namespace Cards
             return new LearnCardRequest
             {
                 CardId = domainLearnCardRequest.CardId.ToString(),
-                UserToken = domainLearnCardRequest.UserToken
+                UserToken = domainLearnCardRequest.UserToken,
+                Forget = domainLearnCardRequest.Forget
             };
         }
         
@@ -64,11 +100,7 @@ namespace Cards
         {
             _ = grpcLearnCardRequest ?? throw new ArgumentNullException(nameof(grpcLearnCardRequest));
             
-            return new Domain.Models.LearnCardRequest
-            {
-                CardId = Guid.Parse(grpcLearnCardRequest.CardId),
-                UserToken = grpcLearnCardRequest.UserToken
-            };
+            return new Domain.Models.LearnCardRequest(Guid.Parse(grpcLearnCardRequest.CardId), grpcLearnCardRequest.UserToken, grpcLearnCardRequest.Forget);
         }
         
         public static LoginRequest ToGrpc(this Domain.Models.LoginRequest domainLoginRequest)
@@ -99,7 +131,14 @@ namespace Cards
             
             return new LoginResponse
             {
-                Status = domainLoginResponse.Status,
+                Status = domainLoginResponse.Status switch
+                {
+                    LoginStatus.AuthenticationError => LoginResponse.Types.LoginStatus.AuthenticationError,
+                    LoginStatus.AlreadyLoggedIn => LoginResponse.Types.LoginStatus.AlreadyLoggedIn,
+                    LoginStatus.LoggedIn => LoginResponse.Types.LoginStatus.LoggedIn,
+                    LoginStatus.Registered => LoginResponse.Types.LoginStatus.Registered,
+                    _ => throw new ArgumentOutOfRangeException()
+                },
                 UserToken = domainLoginResponse.UserToken
             };
         }
@@ -110,7 +149,14 @@ namespace Cards
 
             return new Domain.Models.LoginResponse
             {
-                Status = grpcLoginResponse.Status,
+                Status = grpcLoginResponse.Status switch
+                {
+                    LoginResponse.Types.LoginStatus.AuthenticationError => LoginStatus.AuthenticationError,
+                    LoginResponse.Types.LoginStatus.AlreadyLoggedIn => LoginStatus.AlreadyLoggedIn,
+                    LoginResponse.Types.LoginStatus.LoggedIn => LoginStatus.LoggedIn,
+                    LoginResponse.Types.LoginStatus.Registered => LoginStatus.Registered,
+                    _ => throw new ArgumentOutOfRangeException()
+                },
                 UserToken = grpcLoginResponse.UserToken
             };
         }
@@ -179,6 +225,15 @@ namespace Cards
 
         #region MongoDb
         
+        public static User ToDomain(this UserDocument mongoUserDocument)
+        {
+            _ = mongoUserDocument ?? throw new ArgumentNullException(nameof(mongoUserDocument));
+            
+            return new User(
+                mongoUserDocument.Id,
+                mongoUserDocument.Username);
+        }
+        
         public static Card ToDomain(this CardDocument mongoCardDocument)
         {
             _ = mongoCardDocument ?? throw new ArgumentNullException(nameof(mongoCardDocument));
@@ -205,6 +260,30 @@ namespace Cards
                 domainCard.Etymology,
                 domainCard.Definition,
                 domainCard.YouGlishLink);
+        }
+        
+        public static KnownCard ToDomain(this KnownCardDocument domainKnownCard)
+        {
+            _ = domainKnownCard ?? throw new ArgumentNullException(nameof(domainKnownCard));
+            
+            return new KnownCard(
+                domainKnownCard.Id,
+                domainKnownCard.Repetitions,
+                domainKnownCard.EasinessFactor,
+                domainKnownCard.Interval,
+                domainKnownCard.NextReviewDate);
+        }
+        
+        public static KnownCardDocument ToMongo(this KnownCard domainKnownCard)
+        {
+            _ = domainKnownCard ?? throw new ArgumentNullException(nameof(domainKnownCard));
+            
+            return new KnownCardDocument(
+                domainKnownCard.Id,
+                domainKnownCard.Repetitions,
+                domainKnownCard.EasinessFactor,
+                domainKnownCard.Interval,
+                domainKnownCard.NextReviewDate);
         }
 
         #endregion

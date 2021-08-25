@@ -4,6 +4,7 @@ package cards.v1;
 option csharp_namespace = "Cards.Grpc.Generated";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 service CardsService {
   // Получить информацию по слову.
@@ -15,11 +16,22 @@ service CardsService {
   // Получить следующую карточку для ревью.
   rpc GetCardForReview(GetCardForReviewRequest) returns (Card);
 
-  // Выучить карточку.
+  // Отправить отработанную карточку.
+  rpc ReviewCard(ReviewCardRequest) returns (google.protobuf.Empty);
+
+  // Получить идентификаторы карточек, которые знает пользователь.
   rpc GetKnownCards(GetKnownCardsRequest) returns (GetKnownCardsResponse);
   
   // Выучить карточку.
   rpc LearnCard(LearnCardRequest) returns (google.protobuf.Empty);
+}
+
+
+message ReviewCardRequest {
+  string UserToken = 1;
+  string CardId = 2;
+  int32 Grade = 3;
+  google.protobuf.Timestamp ReviewDate = 4;
 }
 
 message GetKnownCardsRequest {
@@ -33,6 +45,7 @@ message GetKnownCardsResponse {
 message LearnCardRequest {
   string CardId = 1;
   string UserToken = 2;
+  bool Forget = 3;
 }
 
 message GetCardRequest {
@@ -49,7 +62,13 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  bool Status = 1;
+  enum LoginStatus {
+    AuthenticationError = 0;
+    AlreadyLoggedIn = 1;
+    LoggedIn = 2;
+    Registered = 3;
+  }
+  LoginStatus Status = 1;
   string UserToken = 2;
 }
 

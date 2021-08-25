@@ -28,7 +28,7 @@ namespace Cards.Mongo.Models
 
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public Guid Id;
+        public Guid Id { get; set; }
         
         [BsonElement("englishWord")]
         public string EnglishWord { get; set; }

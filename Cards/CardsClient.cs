@@ -47,6 +47,15 @@ namespace Cards
                 token);
         }
 
+        public Task ReviewCard(ReviewCardRequest reviewCardRequest, CancellationToken token = default)
+        {
+            return _cardsProxy.ReviewCard(
+                reviewCardRequest,
+                req => req.ToGrpc(),
+                (client, request, t) => client.ReviewCardAsync(request, cancellationToken: t),
+                token);
+        }
+
         public Task LearnCard(LearnCardRequest learnCardRequest, CancellationToken token = default)
         {
             return _cardsProxy.LearnCard(
