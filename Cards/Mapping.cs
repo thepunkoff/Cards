@@ -29,6 +29,7 @@ namespace Cards
                 CardId = domainReviewCardRequest.CardId.ToString(),
                 UserToken = domainReviewCardRequest.UserToken,
                 ReviewDate = Timestamp.FromDateTime(domainReviewCardRequest.ReviewDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)),
+                IgnoreDate = domainReviewCardRequest.IgnoreDate,
                 Grade = domainReviewCardRequest.Grade
             };
         }
@@ -42,6 +43,7 @@ namespace Cards
                 CardId = Guid.Parse(grpcReviewCardRequest.CardId),
                 UserToken = grpcReviewCardRequest.UserToken,
                 ReviewDate = DateOnly.FromDateTime(grpcReviewCardRequest.ReviewDate.ToDateTime()),
+                IgnoreDate = grpcReviewCardRequest.IgnoreDate,
                 Grade = grpcReviewCardRequest.Grade
             };
         }
@@ -215,6 +217,7 @@ namespace Cards
             return new Domain.Models.GetCardForReviewRequest
             {
                 UserToken = grpcGetCardForReviewRequest.UserToken,
+                IgnoreDate = grpcGetCardForReviewRequest.IgnoreDate,
                 ReviewDate = DateOnly.FromDateTime(grpcGetCardForReviewRequest.ReviewDate.ToDateTime()),
             };
         }
@@ -226,6 +229,7 @@ namespace Cards
             return new GetCardForReviewRequest
             {
                 UserToken = domainGetCardForReviewRequest.UserToken,
+                IgnoreDate = domainGetCardForReviewRequest.IgnoreDate,
                 ReviewDate = Timestamp.FromDateTime(domainGetCardForReviewRequest.ReviewDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc))
             };
         }

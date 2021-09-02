@@ -11,7 +11,7 @@ namespace Cards.Domain.Abstractions
         
         Task<KnownCard> GetKnownCard(User user, Guid cardId, CancellationToken token = default);
         
-        Task<Guid?> GetCardForReviewId(User user, DateOnly requestDate, CancellationToken token = default);
+        Task<Guid?> GetCardForReviewId(User user, DateOnly? requestDate, CancellationToken token = default);
 
         Task LearnCard(User user, Card card, DateOnly learningDate, CancellationToken token = default);
         

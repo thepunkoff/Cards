@@ -9,6 +9,8 @@ namespace Cards.Domain.Models
         public string UserToken { get; init; }
 
         public int Grade { get; init; }
+        
+        public bool IgnoreDate { get; init; }
 
         public DateOnly ReviewDate { get; init; }
     }

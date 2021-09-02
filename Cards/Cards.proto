@@ -22,7 +22,7 @@ service CardsService {
   // Получить идентификаторы карточек, которые знает пользователь.
   rpc GetKnownCards(GetKnownCardsRequest) returns (GetKnownCardsResponse);
   
-  // Выучить карточку.
+  // Выучить или забыть карточку.
   rpc LearnCard(LearnCardRequest) returns (google.protobuf.Empty);
 }
 
@@ -31,7 +31,8 @@ message ReviewCardRequest {
   string UserToken = 1;
   string CardId = 2;
   int32 Grade = 3;
-  google.protobuf.Timestamp ReviewDate = 4;
+  bool IgnoreDate = 4;
+  google.protobuf.Timestamp ReviewDate = 5;
 }
 
 message GetKnownCardsRequest {
@@ -54,7 +55,8 @@ message GetCardRequest {
 
 message GetCardForReviewRequest {
   string UserToken = 1;
-  google.protobuf.Timestamp ReviewDate = 2;
+  bool IgnoreDate = 2;
+  google.protobuf.Timestamp ReviewDate = 3;
 }
 
 message GetCardForReviewResponse {

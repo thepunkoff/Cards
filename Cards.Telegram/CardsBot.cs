@@ -37,7 +37,7 @@ namespace Cards.Telegram
                         return;
 
                     if (!args.CallbackQuery.Data.StartsWith('/'))
-                        throw new InvalidOperationException("Callback query data should be a command.");
+                        throw new InvalidOperationException($"Callback query data should be a command. Was: '{args.CallbackQuery.Data}'");
 
                     await ProcessCommand(args.CallbackQuery.From.Id, args.CallbackQuery.Message.MessageId, args.CallbackQuery.Data);
                 }
@@ -93,7 +93,7 @@ namespace Cards.Telegram
         private async Task ProcessCommand(long chatId, int messageId, string text)
         {
             if (!text.StartsWith('/'))
-                throw new ArgumentException("Message text should start from '/' to be considered a command");
+                throw new ArgumentException("Message text should start from '/' to be considered a command.");
             
             var splitPrepare = text;
             splitPrepare = Regex.Replace(splitPrepare, @"\s\s+", " ");
@@ -119,6 +119,8 @@ namespace Cards.Telegram
                     break;
                 case "/forget":
                     await ProcessLearnCommand(chatId, messageId, split[1..], true);
+                    break;
+                case "/noop":
                     break;
                 default:
                     await _botClient.SendTextMessageAsync(chatId, $"Не существует команды '{split[0]}'.");
@@ -187,14 +189,18 @@ namespace Cards.Telegram
 
             var (_, userToken) = _authorizedUsers[chatId];
 
-            var reviewDate = args.Length == 1
-                ? DateTime.ParseExact(args[0], "dd-MM-yyyy", CultureInfo.InvariantCulture)
+            var reviewDate = args.Length > 0
+                ? DateTime.TryParseExact(args[0], "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var result)
+                    ? result
+                    : DateTime.Today
                 : DateTime.Today;
             
             // TODO: cache?
+            var ignoreDate = args.Length > 0 && args[^1] == "dev";
             var response = await _cardsClient.GetCardForReview(new GetCardForReviewRequest
             {
                 UserToken = userToken,
+                IgnoreDate = ignoreDate,
                 ReviewDate = DateOnly.FromDateTime(reviewDate)
             });
 
@@ -205,12 +211,11 @@ namespace Cards.Telegram
             }
             
             var sideOne = response.Card!.EnglishWord;
-
-            var reviewDateArg = args.Length == 1 ? " " + args[0] : string.Empty;
+            
             var flipKeyboard = new InlineKeyboardMarkup(
                 new[]
                 {
-                    new InlineKeyboardButton("Flip", $"/flip {response.Card!.Id} {response.Card!.EnglishWord}{reviewDateArg}"),
+                    new InlineKeyboardButton("Flip", $"/flip {response.Card!.Id} {response.Card!.EnglishWord} {reviewDate:dd-MM-yyyy}{(ignoreDate ? " dev" : string.Empty)}"),
                 });
             
             await _botClient.SendTextMessageAsync(chatId, sideOne, replyMarkup: flipKeyboard);
@@ -228,7 +233,7 @@ namespace Cards.Telegram
             
             var cardId = Guid.Parse(args[0]);
             var grade = int.Parse(args[1]);
-            var reviewDate = args.Length == 3
+            var reviewDate = args.Length >= 3
                 ? DateTime.ParseExact(args[2], "dd-MM-yyyy", CultureInfo.InvariantCulture)
                 : DateTime.Today;
 
@@ -237,17 +242,18 @@ namespace Cards.Telegram
                 CardId = cardId,
                 Grade = grade,
                 ReviewDate = DateOnly.FromDateTime(reviewDate),
+                IgnoreDate = args[^1] == "dev",
                 UserToken = userToken
             });
             
             var gradesKeyboard = new InlineKeyboardMarkup(
                 new[]
                 {
-                    new InlineKeyboardButton($"{(grade == 1 ? "[Fail]" : "Fail")}"),
-                    new InlineKeyboardButton($"{(grade == 2 ? "[Hard]" : "Hard")}"),
-                    new InlineKeyboardButton($"{(grade == 3 ? "[Medium]" : "Medium")}"),
-                    new InlineKeyboardButton($"{(grade == 4 ? "[Good]" : "Good")}"),
-                    new InlineKeyboardButton($"{(grade == 5 ? "[Perfect]" : "Perfect")}"),
+                    new InlineKeyboardButton($"{(grade == 1 ? "[Fail]" : "Fail")}", "/noop"),
+                    new InlineKeyboardButton($"{(grade == 2 ? "[Hard]" : "Hard")}", "/noop"),
+                    new InlineKeyboardButton($"{(grade == 3 ? "[Medium]" : "Medium")}", "/noop"),
+                    new InlineKeyboardButton($"{(grade == 4 ? "[Good]" : "Good")}", "/noop"),
+                    new InlineKeyboardButton($"{(grade == 5 ? "[Perfect]" : "Perfect")}","/noop"),
                 });
 
             await _botClient.EditMessageReplyMarkupAsync(chatId, messageId, gradesKeyboard);
@@ -257,7 +263,8 @@ namespace Cards.Telegram
         {
             var cardId = args[0];
             var word = args[1];
-            var reviewDateArg = args.Length == 3 ? " " + args[2] : string.Empty;
+            var reviewDateArg = args.Length >= 3 ? " " + args[2] : string.Empty;
+            var ignoreDate = args[^1] == "dev";
             
             // TODO: get card by id
             var card = await _cardsClient.GetCard(new GetCardRequest { Word = word});
@@ -267,11 +274,11 @@ namespace Cards.Telegram
             var gradesKeyboard = new InlineKeyboardMarkup(
                 new[]
                 {
-                    new InlineKeyboardButton("Fail", $"/reviewed {cardId} 1{reviewDateArg}"),
-                    new InlineKeyboardButton("Hard", $"/reviewed {cardId} 2{reviewDateArg}"),
-                    new InlineKeyboardButton("Medium", $"/reviewed {cardId} 3{reviewDateArg}"),
-                    new InlineKeyboardButton("Good", $"/reviewed {cardId} 4{reviewDateArg}"),
-                    new InlineKeyboardButton("Perfect", $"/reviewed {cardId} 5{reviewDateArg}"),
+                    new InlineKeyboardButton("Fail", $"/reviewed {cardId} 1{reviewDateArg}{(ignoreDate ? " dev" : string.Empty)}"),
+                    new InlineKeyboardButton("Hard", $"/reviewed {cardId} 2{reviewDateArg}{(ignoreDate ? " dev" : string.Empty)}"),
+                    new InlineKeyboardButton("Medium", $"/reviewed {cardId} 3{reviewDateArg}{(ignoreDate ? " dev" : string.Empty)}"),
+                    new InlineKeyboardButton("Good", $"/reviewed {cardId} 4{reviewDateArg}{(ignoreDate ? " dev" : string.Empty)}"),
+                    new InlineKeyboardButton("Perfect", $"/reviewed {cardId} 5{reviewDateArg}{(ignoreDate ? " dev" : string.Empty)}"),
                 });
 
             await _botClient.EditMessageReplyMarkupAsync(chatId, messageId, gradesKeyboard);

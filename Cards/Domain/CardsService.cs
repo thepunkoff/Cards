@@ -54,7 +54,8 @@ namespace Cards.Domain
             if (!ok)
                 throw new LoginException("User is not logged in.");
 
-            var cardForReviewId = await _usersRepository.GetCardForReviewId(user!, getCardForReviewRequest.ReviewDate, token);
+            var reviewDate = !getCardForReviewRequest.IgnoreDate ? getCardForReviewRequest.ReviewDate : (DateOnly?)null;
+            var cardForReviewId = await _usersRepository.GetCardForReviewId(user!, reviewDate, token);
 
             if (cardForReviewId is null)
             {
@@ -84,7 +85,7 @@ namespace Cards.Domain
             
             var card = await _usersRepository.GetKnownCard(user!, reviewCardRequest.CardId, token);
 
-            if (card.NextReviewDate > reviewCardRequest.ReviewDate)
+            if (!reviewCardRequest.IgnoreDate && card.NextReviewDate > reviewCardRequest.ReviewDate)
                 throw new TooManyReviewsException($"Detected multiple reviews per day for card '{card.Id}'");
 
             var reviewedCard = SuperMemo2.ReviewCard(card, reviewCardRequest.Grade);

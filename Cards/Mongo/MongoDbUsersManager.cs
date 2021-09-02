@@ -127,7 +127,7 @@ namespace Cards.Mongo
             return cardToReview.ToDomain();
         }
 
-        public async Task<Guid?> GetCardForReviewId(User user, DateOnly requestDate, CancellationToken token = default)
+        public async Task<Guid?> GetCardForReviewId(User user, DateOnly? requestDate, CancellationToken token = default)
         {
             // TODO: брать одним запросом только то, что нужно, если это возможно
             var filter = new FilterDefinitionBuilder<UserDocument>().Eq(x => x.Id, user.Id);
@@ -142,7 +142,11 @@ namespace Cards.Mongo
             }
             
             var mongoUser = userCursor.Current.Single();
-            var cardToReview = mongoUser.KnownCards.FirstOrDefault(x => x.NextReviewDate == requestDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+
+            var cardToReview = requestDate is not null
+                ? mongoUser.KnownCards.FirstOrDefault(x => x.NextReviewDate == requestDate.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc))
+                : mongoUser.KnownCards.OrderBy(x => x.NextReviewDate).FirstOrDefault();
+
             return cardToReview?.Id;
         }
 
